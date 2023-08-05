@@ -10,23 +10,15 @@ The code to indentify ground truth singlets is deposited in the
 
 # Fatemap Data Structure
 
-The data is deposited at this link. It has the following stucture. 
+The data is deposited at this link. It has the following stucture. All the `singlet_pair` files indicate which singlets
+are used to simulate doublets in which sample. THe `singlets.txt` file contains all the singlets for that dataset. 
 
 ```bash
 ├── FM01
-│   ├── 10X
-│   │   ├── sample1
-│   │   │   │   ├── barcodes.tsv.gz
-│   │   │   │   ├── features.tsv.gz
-│   │   │   │   ├── matrix.mtx.gz
-│   │   ├── sample2
-│   │   ├──  ...
-│   │   ├── sampleX
-│   ├── fatemapID
-│   │   ├── FM01_good_data.tsv
-│   │   ├── FM01_multiplets.txt
-│   │   ├── FM01_singlets.txt
-│   │   ├── stepFourStarcodeShavedReads50.txt
+│   ├── FM01_1_singlet_pairs.csv
+│   ├── FM01_2_singlet_pairs.csv
+│   ├── ...
+│   ├── FM01_singlets.txt
 ├── FM02
 ├── FM03
 ├── ...
