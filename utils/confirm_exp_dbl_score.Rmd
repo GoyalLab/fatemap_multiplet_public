@@ -1,0 +1,163 @@
+```{r}
+library(Matrix)
+library(Seurat)
+library(scds)
+library(data.table)
+library(SingleCellExperiment)
+library(PRROC)
+require(DoubletFinder)
+source("/projects/p31666/zzhang/doublet-bchmk/repo/benchmarking/scds/scds_utils.R")
+
+```
+
+
+
+
+
+```{r}
+root_dir <-"/projects/p31666/zzhang/doublet-bchmk/data/fatemap_data"
+METHOD_ID<-"hybrid"
+out_dir<-"/projects/p31666/zzhang/doublet-bchmk/final"
+root_bchmk_dataset<-"/projects/p31666/zzhang/doublet-bchmk/data/bchmk_paper_real_data"
+num_test <- 1
+doublet_rates_to_test<-c(0.05, 0.08, 0.1, 0.15, 0.2, 0.25)
+ACT_DBL <- 0.15
+################################
+#                              #
+#             Main             #
+#                              #
+################################
+
+main<-function (root_dir, METHOD_ID, out_dir){
+  all_datasets_dirs<-list.dirs(path = root_dir, full.names = TRUE, recursive = F)
+  out_df<-NULL
+
+
+  for(expected_doublet_rate in doublet_rates_to_test){
+    for(cur_dataset_dir in all_datasets_dirs){
+      print(glue("INFO: Currently testing expected doublet rate:{expected_doublet_rate}, actual doublet rate:{ACT_DBL}"))
+      cur_out_df<-run_hybrid_on_dataset(cur_dataset_dir, METHOD_ID, num_to_test = num_test,
+                                        dbl_exp = expected_doublet_rate, dbl_act = ACT_DBL)
+      cur_out_df$dbl_exp <- expected_doublet_rate
+      cur_out_df$dbl_act <- ACT_DBL
+      out_df<-rbindlist(list(out_df, cur_out_df))|>
+        data.frame()
+
+    }
+  }
+
+  all_detection_rates_file<-glue("{out_dir}/{METHOD_ID}/stats/all_detection_rates_{ACT_DBL}.tsv")
+  dir.create(file.path(glue("{out_dir}/{METHOD_ID}/stats")), showWarnings = TRUE, recursive = TRUE)
+  write.table(out_df, file = all_detection_rates_file, quote = FALSE, sep="\t",row.names = FALSE)
+}
+main(root_dir, METHOD_ID, out_dir)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{r}
+cell_labels_prefix<-"/projects/p31666/zzhang/doublet-bchmk/data/fatemap_data/FM01/fatemapID/FM01"
+sample_dir<-"/projects/p31666/zzhang/doublet-bchmk/data/fatemap_data/FM01/10X/sample1"
+data_dir<-"/projects/p31666/zzhang/doublet-bchmk/data/fatemap_data/FM01"
+```
+
+```{r}
+s <- load_fatemap_into_sce(data_dir = sample_dir, cell_labels_prefix = cell_labels_prefix, doublets_pct = 0.08)
+```   
+
+```{r}
+set.seed(2022)
+
+sce <- load_fatemap_into_sce(data_dir = sample_dir, cell_labels_prefix = cell_labels_prefix, doublets_pct = 0.15)
+
+out1 <- run_cxds(sce, exp_dbl = 0.1, doublet_obj_file = NULL)
+out2 <- run_cxds(sce, exp_dbl = 0.15, doublet_obj_file = NULL)
+
+sce <- cxds_bcds_hybrid(sce, estNdbl = 0.1, force=T)
+
+score <- colData(sce)
+fg <- score[score$label=="doublet",][["hybrid_score"]]
+bg <- score[score$label=="singlet",][["hybrid_score"]]
+pr <- pr.curve(scores.class0 = fg, scores.class1 = bg, curve = T)
+cur_pr<-pr$auc.integral
+roc <- roc.curve(scores.class0 = fg, scores.class1 = bg, curve = T)
+cur_roc<-roc$auc
+print(cur_pr)
+print(cur_roc)
+
+sce <- cxds_bcds_hybrid(sce, estNdbl = 0.15, force=T)
+
+score <- colData(sce)
+fg <- score[score$label=="doublet",][["hybrid_score"]]
+bg <- score[score$label=="singlet",][["hybrid_score"]]
+pr <- pr.curve(scores.class0 = fg, scores.class1 = bg, curve = T)
+cur_pr<-pr$auc.integral
+roc <- roc.curve(scores.class0 = fg, scores.class1 = bg, curve = T)
+cur_roc<-roc$auc
+print(cur_pr)
+print(cur_roc)
+```
+
+```{r}
+# s <- load_fatemap_into_sce(data_dir = sample_dir, cell_labels_prefix = cell_labels_prefix, doublets_pct = 0.15)
+sce <- cxds_bcds_hybrid(sce, estNdbl = 0.1, force=T)
+
+score <- colData(sce)
+fg <- score[score$label=="doublet",][["hybrid_score"]]
+bg <- score[score$label=="singlet",][["hybrid_score"]]
+pr <- pr.curve(scores.class0 = fg, scores.class1 = bg, curve = T)
+cur_pr<-pr$auc.integral
+roc <- roc.curve(scores.class0 = fg, scores.class1 = bg, curve = T)
+cur_roc<-roc$auc
+
+print(cur_pr)
+print(cur_roc)
+```
+
+
+
+
+
+
+
+
+```{r}
+t1 <- "/projects/b1042/GoyalLab/zzhang/doublet_objects/hybrid/act__0.15/FM01___sample1___exp_0.1__act_0.15.rds"|>readRDS()
+t2 <- "/projects/b1042/GoyalLab/zzhang/doublet_objects/hybrid/act__0.15/FM01___sample1___exp_0.15__act_0.15.rds"|>readRDS()
+
+t1_score <- t1$hybrid_score
+t2_score <- t2$hybrid_score
+
+all(t1_score == t2_score)
+```
+
+
+
+
+
+
+
+
+
+
+

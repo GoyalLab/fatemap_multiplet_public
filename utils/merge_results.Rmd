@@ -1,0 +1,31 @@
+```{r}
+library(glue)
+library(data.table)
+```
+
+```{r}
+dbl_pct <- c(0.05, 0.08, 0.1, 0.15, 0.2, 0.25)
+methods <- c("doublet_finder", "doublet_cell", "hybrid", "scrublet")
+
+paths <- lapply(methods, function(x){
+  glue("/projects/p31666/zzhang/doublet-bchmk/final/{x}/stats/all_detection_rates_{dbl_pct}.tsv")
+})
+
+
+```
+
+```{r}
+for(cur_method_idx in 1:length(paths)){
+  cur_data_paths <- paths[[cur_method_idx]]
+  # print(cur_data_paths)
+  results <- lapply(cur_data_paths, function(x){
+    cur_df <- read.table(x, sep = "\t")
+    colnames(cur_df) <- cur_df[1,]
+    cur_df <- cur_df[2:nrow(cur_df), ]
+  })
+  out_df <- data.table::rbindlist(results)|>as.data.frame()
+  out_df_file <- cur_data_paths[1]|>str_replace("_0.05.tsv", ".tsv")
+  write.table(out_df, file = out_df_file, quote = F, row.names = F, sep="\t")
+}
+```
+

@@ -10,9 +10,8 @@
 #SBATCH --error=/projects/p31666/zzhang/cluster_logs/%j.%N.err
 #SBATCH --verbose
 
-module purge
-module load geos/3.8.1
-module load R/4.1.1
+module purge all
+module load R/4.2.3
 
 cd /projects/p31666/zzhang/doublet-bchmk/repo/benchmarking/doublet_finder
 Rscript 8pct_main.R

@@ -1,0 +1,15 @@
+```{r}
+
+root <- "/projects/p31666/zzhang/doublet-bchmk/data/fatemap_data/Biorxiv/10X"
+samples_to_check <- c("3_LSD1i_A", "4_LSD1i_B", "5_DOT1Li_A", "6_DOT1Li_B")
+all_samples <- glue("{root}/{samples_to_check}")
+
+
+for(cur_sample in all_samples){
+  cur_10X_cells <- read.csv(gzfile(glue("{cur_sample}/barcodes.tsv.gz")), header = F)[["V1"]]
+  cur_barcode_singlets <- read.csv(glue("{cur_sample}/singlets_all.txt"), header = F)[["V1"]]
+  cur_barcode_singlets <- paste0(cur_barcode_singlets, "-1")
+  print(intersect(cur_10X_cells, cur_barcode_singlets)|>length())
+}
+```
+

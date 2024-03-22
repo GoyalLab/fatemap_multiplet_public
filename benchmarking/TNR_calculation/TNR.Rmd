@@ -1,0 +1,183 @@
+```{r}
+require(glue)
+require(data.table)
+require(dplyr)
+library(stringr)
+library(ggplot2)
+```
+
+# TNR for benchmarking data
+```{r}
+score_dirs <- c(
+  "/projects/b1042/GoyalLab/zzhang/doublet_objects_benchmarking_data/hybrid",
+  "/projects/b1042/GoyalLab/zzhang/doublet_objects_benchmarking_data/doublet_cell",
+  "/projects/b1042/GoyalLab/zzhang/doublet_objects_benchmarking_data/doublet_finder",
+  "/projects/b1042/GoyalLab/zzhang/doublet_objects_benchmarking_data/scrublet"
+
+)
+out_df <- list()
+
+for(cur_score_dir in score_dirs){
+  method_id <- basename(cur_score_dir)
+  cur_score_dir_files <- list.files(cur_score_dir, full.names = TRUE)
+  for(cur_file in cur_score_dir_files){
+    if(method_id == "scrublet"){
+      cur_score_df <- read.csv(cur_file)
+      cur_score_df_sorted <- cur_score_df[order(cur_score_df$score, decreasing = T), ]
+      names(cur_score_df_sorted)[names(cur_score_df_sorted) == "label"] <- "ground_truth"
+      num_top <- 0.08 * nrow(cur_score_df_sorted)
+      cur_score_df_sorted[["calls_score_based"]] <- "singlet"
+      cur_score_df_sorted[["calls_score_based"]][1:num_top] <- "doublet"
+      cur_cal_df <- dplyr::select(cur_score_df_sorted, ground_truth, calls_score_based)
+    }else if(method_id == "doublet_finder"){
+      cur_score_df <- readRDS(cur_file)
+      cur_score_df <- cur_score_df@meta.data
+      score_col <- grep("pANN", colnames(cur_score_df), value = TRUE)
+      cur_score_df_sorted <- cur_score_df[order(cur_score_df[[score_col]], decreasing = T), ]
+      num_top <- 0.08 * nrow(cur_score_df_sorted)
+      cur_score_df_sorted[["calls_score_based"]] <- "singlet"
+      cur_score_df_sorted[["calls_score_based"]][1:num_top] <- "doublet"
+      names(cur_score_df_sorted)[names(cur_score_df_sorted) == "label"] <- "ground_truth"
+      cur_cal_df <- dplyr::select(cur_score_df_sorted, ground_truth, calls_score_based)
+    }else if(method_id == "doublet_cell"){
+      cur_score_df <- readRDS(cur_file)
+      cur_score_df <- cur_score_df@colData|>as.data.frame()
+      cur_score_df_sorted <- cur_score_df[order(cur_score_df[["scDblFinder.score"]], decreasing = T), ]
+      num_top <- 0.08 * nrow(cur_score_df_sorted)
+      cur_score_df_sorted[["calls_score_based"]] <- "singlet"
+      cur_score_df_sorted[["calls_score_based"]][1:num_top] <- "doublet"
+      names(cur_score_df_sorted)[names(cur_score_df_sorted) == "label"] <- "ground_truth"
+      cur_cal_df <- dplyr::select(cur_score_df_sorted, ground_truth, calls_score_based)
+    }else if(method_id == "hybrid"){
+      cur_score_df <- readRDS(cur_file)
+      cur_score_df <- cur_score_df@colData|>as.data.frame()
+      cur_score_df_sorted <- cur_score_df[order(cur_score_df[["hybrid_score"]], decreasing = T), ]
+      num_top <- 0.08 * nrow(cur_score_df_sorted)
+      cur_score_df_sorted[["calls_score_based"]] <- "singlet"
+      cur_score_df_sorted[["calls_score_based"]][1:num_top] <- "doublet"
+      names(cur_score_df_sorted)[names(cur_score_df_sorted) == "label"] <- "ground_truth"
+      cur_cal_df <- dplyr::select(cur_score_df_sorted, ground_truth, calls_score_based)
+    }
+    
+    TN <- sum(cur_cal_df$ground_truth == "singlet" & cur_cal_df$calls_score_based == "singlet")
+    FP <- sum(cur_cal_df$ground_truth == "singlet" & cur_cal_df$calls_score_based == "doublet")
+    cur_TNR <- TN / (TN + FP)
+    dataset_str <- basename(cur_file)|>str_remove(".csv")
+    res <- list(
+      "method" = method_id,
+      "id" = dataset_str,
+      "TNR" = cur_TNR
+    )
+    res_id <- glue("{method_id}__{dataset_str}")
+    out_df[[res_id]] <- res
+  }
+}
+
+out_df <- rbindlist(out_df)|>
+  as.data.frame()
+
+write.csv(out_df, "/projects/p31666/zzhang/doublet-bchmk/final/TNR/TNR_8_benchmarking.csv",quote = F, row.names = F)
+
+p <- ggplot(out_df, aes(x = method, y = TNR, fill = method)) +
+  geom_boxplot() +
+  labs(title = "Boxplot of TNR by Method",
+       x = "Method",
+       y = "True Negative Rate (TNR)") +
+  theme_minimal()+
+  ylim(0.8, 1) 
+
+ggsave("/projects/p31666/zzhang/doublet-bchmk/final/TNR/TNR_8_benchmarking.svg", p, device = "svg", height = 6, width = 8)
+```
+
+# TNR for barcode data 
+```{r}
+score_dirs <- c(
+  "/projects/p31666/melzer/ZhangMelzerEtAl/doubletInfo_sum/doublet_finder",
+  "/projects/p31666/melzer/ZhangMelzerEtAl/doubletInfo_sum/doublet_cell",
+  "/projects/p31666/melzer/ZhangMelzerEtAl/doubletInfo_sum/hybrid",
+  "/projects/b1042/GoyalLab/zzhang/doublet_objects_sum/scrublet"
+)
+
+out_df <- list()
+for(cur_score_dir in score_dirs){
+  cur_score_dir_files <- list.files(cur_score_dir, pattern = "act_0.08", 
+                           full.names = TRUE, recursive = TRUE)
+  print(length(cur_score_dir_files))
+  method_id <- basename(cur_score_dir)
+  for(cur_file in cur_score_dir_files){
+    if(method_id == "scrublet"){
+      cur_score_df <- read.csv(cur_file)
+      cur_score_df_sorted <- cur_score_df[order(cur_score_df$score, decreasing = T), ]
+      cur_score_df_sorted[["ground_truth"]] <- sapply(cur_score_df_sorted$barcode, function(x){
+        if(grepl("--", x)){
+          out <- "doublet"
+        }else{
+          out <- "singlet"
+        }
+        out
+      })
+      num_top <- 0.08 * nrow(cur_score_df_sorted)
+      cur_score_df_sorted[["calls_score_based"]] <- "singlet"
+      cur_score_df_sorted[["calls_score_based"]][1:num_top] <- "doublet"
+      cur_cal_df <- dplyr::select(cur_score_df_sorted, ground_truth, calls_score_based)
+    }else if(method_id == "doublet_finder"){
+      cur_score_df <- read.csv(cur_file)
+      score_col <- grep("pANN", colnames(cur_score_df), value = TRUE)
+      cur_score_df_sorted <- cur_score_df[order(cur_score_df[[score_col]], decreasing = T), ]
+      num_top <- 0.08 * nrow(cur_score_df_sorted)
+      cur_score_df_sorted[["calls_score_based"]] <- "singlet"
+      cur_score_df_sorted[["calls_score_based"]][1:num_top] <- "doublet"
+      names(cur_score_df_sorted)[names(cur_score_df_sorted) == "label"] <- "ground_truth"
+      cur_cal_df <- dplyr::select(cur_score_df_sorted, ground_truth, calls_score_based)
+    }else if(method_id == "doublet_cell"){
+      cur_score_df <- read.csv(cur_file)
+      cur_score_df_sorted <- cur_score_df[order(cur_score_df[["scDblFinder.score"]], decreasing = T), ]
+      num_top <- 0.08 * nrow(cur_score_df_sorted)
+      cur_score_df_sorted[["calls_score_based"]] <- "singlet"
+      cur_score_df_sorted[["calls_score_based"]][1:num_top] <- "doublet"
+      names(cur_score_df_sorted)[names(cur_score_df_sorted) == "label"] <- "ground_truth"
+      cur_cal_df <- dplyr::select(cur_score_df_sorted, ground_truth, calls_score_based)
+    }else if(method_id == "hybrid"){
+      cur_score_df <- read.csv(cur_file)
+      cur_score_df_sorted <- cur_score_df[order(cur_score_df[["hybrid_score"]], decreasing = T), ]
+      num_top <- 0.08 * nrow(cur_score_df_sorted)
+      cur_score_df_sorted[["calls_score_based"]] <- "singlet"
+      cur_score_df_sorted[["calls_score_based"]][1:num_top] <- "doublet"
+      names(cur_score_df_sorted)[names(cur_score_df_sorted) == "label"] <- "ground_truth"
+      cur_cal_df <- dplyr::select(cur_score_df_sorted, ground_truth, calls_score_based)
+    }
+    
+    TN <- sum(cur_cal_df$ground_truth == "singlet" & cur_cal_df$calls_score_based == "singlet")
+    FP <- sum(cur_cal_df$ground_truth == "singlet" & cur_cal_df$calls_score_based == "doublet")
+    cur_TNR <- TN / (TN + FP)
+    dataset_str <- basename(cur_file)|>str_remove(".csv")
+    res <- list(
+      "method" = method_id,
+      "id" = dataset_str,
+      "TNR" = cur_TNR
+    )
+    res_id <- glue("{method_id}__{dataset_str}")
+    out_df[[res_id]] <- res
+
+  }
+}
+out_df <- rbindlist(out_df)|>
+  as.data.frame()
+write.csv(out_df, "/projects/p31666/zzhang/doublet-bchmk/final/TNR/TNR_8_sum.csv",quote = F, row.names = F)
+
+p <- ggplot(out_df, aes(x = method, y = TNR, fill = method)) +
+  geom_boxplot() +
+  labs(title = "Boxplot of TNR by Method",
+       x = "Method",
+       y = "True Negative Rate (TNR)") +
+  theme_minimal()+
+  ylim(0.8, 1) 
+
+ggsave("/projects/p31666/zzhang/doublet-bchmk/final/TNR/TNR_8_sum.svg", p, device = "svg", height = 6, width = 8)
+```
+
+
+
+
+
+

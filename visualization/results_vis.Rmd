@@ -1,0 +1,585 @@
+```{r}
+library(ggplot2)
+library(data.table)
+library(tidyr)
+library(ggrepel)
+library(ggthemes)
+library(grid)
+library(glue)
+library(stringr)
+library(plyr); library(dplyr)
+
+```
+# plot distant vs. adjacent results
+```{r}
+res <- read.table("/projects/p31666/zzhang/doublet-bchmk/final/cell_location_comp/all.tsv", sep = "\t", header = T)
+output_dir <- "/projects/p31666/zzhang/doublet-bchmk/final/cell_location_comp"
+res <- dplyr::filter(res, type != "three_cluster")
+t <- dplyr::filter(res, method == "doublet_cell", type == "adj_test", dataset_id == "LARRY")
+# 6 lines
+
+x_means <- res %>%
+  dplyr::group_by(type, method, dataset_id) %>%
+  dplyr::summarise(average_pr = mean(pr, na.rm = TRUE))|>
+  as.data.frame()
+
+
+x_means <- x_means %>%
+  pivot_wider(names_from = type, values_from = average_pr)
+
+x_means[["diff"]] <- x_means[["all_cluster"]] - x_means[["adj_test"]]
+
+write.csv(x_means, "/projects/p31666/zzhang/doublet-bchmk/final/cell_location_comp/all_average.csv", quote = F, row.names = F)
+
+ggplot(x_means, aes(x = type, y = average_pr, color = method)) +
+  geom_point(aes(size = 3)) + # Making it a bubble plot with size reflecting the average_pr
+  geom_line(data = x_means, aes(group = dataset_id, color = method), size = 1) +
+  theme_minimal() +
+  labs(x = "Type", y = "Average PR", size = "Average PR") +
+  scale_size(range = c(3,10)) # Adjusting the size scale for better visibility
+
+
+
+# Create the scatter plot
+p <- ggplot(res, aes(x = type, y = roc, color = method)) +
+  geom_point(width = 0.2, size = 3) +  # Use geom_jitter to plot all data points
+  geom_line(data = x_means, aes(y = mean_roc, group = interaction(method))) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+  labs(x = "Type", y = "ROC", color = "Method", shape = "Dataset ID")+
+  ggtitle("ROC")+
+  theme_Publication_blank()
+# Print the plot
+
+out_file <- glue("{output_dir}/roc.svg")
+ggsave(p, filename = out_file, height=6, width=8)
+# print(p)
+# dev.off()
+
+
+######            PR              ################
+
+
+# 6 lines
+
+x_means <- res %>%
+  group_by(type, method) %>%
+  summarise(mean_pr = mean(pr), .groups = 'drop')
+
+# Create the scatter plot
+p <- ggplot(res, aes(x = type, y = pr, color = method)) +
+  geom_point(width = 0.2, size = 3) +  # Use geom_jitter to plot all data points
+  geom_line(data = x_means, aes(y = mean_pr, group = interaction(method))) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+  labs(x = "Type", y = "pr", color = "Method", shape = "Dataset ID")+
+  ggtitle("pr")+
+  theme_Publication_blank()
+# Print the plot
+out_file <- glue("{output_dir}/pr.svg")
+# svg(out_file, height=6, width=8)
+ggsave(p, filename = out_file, height=6, width=8)
+# print(p)
+# dev.off()
+
+
+```
+
+
+
+
+# merge separate output files
+```{r}
+methods <- c("doublet_finder", "scrublet", "doublet_cell", "hybrid")
+
+for(cur_method in methods){
+  cur_all_out_dir<-glue("/projects/p31666/zzhang/doublet-bchmk/final_sum/{cur_method}/stats")
+  cur_all_out_dir_files<-list.files(cur_all_out_dir, full.names = T)
+  cur_all_out_dir_files <- cur_all_out_dir_files[1:6]
+  print(cur_all_out_dir_files)
+  cur_all_out_dir_list <- list()
+  for(cur_file in cur_all_out_dir_files){
+    cur_df <- read.table(cur_file, sep="\t", header = T)
+    cur_all_out_dir_list[[cur_file]]<-cur_df
+  }
+
+  cur_all_out_df<-rbindlist(cur_all_out_dir_list)|>
+    as.data.frame()
+
+  write.table(cur_all_out_df, glue("/projects/p31666/zzhang/doublet-bchmk/final_sum/{cur_method}/stats/all_detection_rates.tsv"), sep = "\t", row.names = F, quote = F)
+}
+
+
+
+```
+
+```{r}
+out_dir<-"/projects/p31666/zzhang/doublet-bchmk/final_sum"
+all_out_files<-list.files(out_dir, pattern = "all_detection_rates.tsv", full.names = T, recursive = T)
+```
+
+
+
+```{r}
+
+vis_df_all<-list()
+vis_df_by_dataset<-list()
+for (cur_file in all_out_files){
+  cur_method<-strsplit(cur_file, "/")[[1]][[7]]
+  cur_df<-read.table(cur_file, sep="\t", header=T)
+  cur_df<-cur_df[c("ID","roc","pr")]
+  cur_df[["dataset"]]<-sapply(cur_df[["ID"]], function(x){
+    out<-strsplit(x, "_")[[1]][1]
+    if(out=="non"){
+      out<-"non_cancer_10k"
+    }else if(out=="smartseq3"){
+      num_underscore <- str_count(x, "_")
+      if(num_underscore == 2){
+        out <- sub("_[^_]*$", "", x)
+      }
+    }
+    out
+  })
+  
+  duplicates <- duplicated(cur_df) | duplicated(cur_df, fromLast = TRUE)
+  # Print the duplicated rows
+  print(cur_df[duplicates, ])
+  
+  cur_per_dataset_stats<-aggregate(cur_df[,2:3], list(cur_df$dataset),mean)
+  
+  cur_per_dataset_stats[["method"]]<-cur_method
+  cur_df[["method"]]<-cur_method 
+  vis_df_all[[cur_method]]<-cur_per_dataset_stats
+  vis_df_by_dataset[[cur_method]]<-cur_df
+}
+
+vis_df_by_dataset<-rbindlist(vis_df_by_dataset)|>
+  as.data.frame()
+vis_df_all<-rbindlist(vis_df_all)|>
+  as.data.frame()|>
+  pivot_longer(2:3, names_to = "criteria")|>
+  as.data.frame()
+
+# control
+
+control_data <- c("ID","pdx-MULTI","HMEC-rep-MULTI","mkidney-ch","hm-12k",
+ "pbmc-1A-dm","pbmc-1C-dm","HMEC-orig-MULTI","pbmc-2stim-dm","pbmc-2ctrl-dm",
+"J293t-dm","pbmc-ch","pbmc-1B-dm","hm-6k","cline-ch",
+ "HEK-HMEC-MULTI","nuc-MULTI")
+
+vis_df_all_experiments <- dplyr::filter(vis_df_all, !Group.1%in%control_data)
+
+# This should have 12528 rows
+# 4(methods) * 36(exp/act doublet combo) * 3(num tests) * 29 (samples)
+vis_df_by_dataset_all_experiments <-  dplyr::filter(vis_df_by_dataset, !ID%in%control_data)  
+
+# remove FMXX as it is the same as FM08
+vis_df_all_experiments <- dplyr::filter(vis_df_all_experiments, Group.1!="FMXX")
+vis_df_by_dataset_all_experiments <-  dplyr::filter(vis_df_by_dataset_all_experiments, dataset!="FMXX")  
+
+vis_df_all[["source"]]<-sapply(vis_df_all$Group.1, function(x){
+  if(x %in% control_data){
+    out <- "not barcoded"
+  }else{
+    out <- "barcoded"
+  }
+  out
+})
+
+```
+
+
+
+
+```{r fig.height=9, fig.width=12}
+
+out_root <- "/projects/p31666/zzhang/doublet-bchmk/plots/boxplots"
+
+cur_out <- glue("{out_root}/avg_roc_per_dataset.svg")
+svg(cur_out, width = 15, height = 9)
+p <- ggplot(vis_df_by_dataset_all_experiments, aes(x=dataset, y=roc, fill=method))+
+  geom_boxplot()+
+  ggtitle("Average ROC per dataset")+
+  theme_Publication_blank()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+plot(p)
+dev.off()
+
+cur_out <- glue("{out_root}/avg_pr_per_dataset.svg")
+svg(cur_out, width = 15, height = 9)
+p <- ggplot(vis_df_by_dataset_all_experiments, aes(x=dataset, y=pr, fill=method))+
+  geom_boxplot()+
+  ggtitle("Average PR per dataset")+
+  theme_Publication_blank()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+plot(p)
+dev.off()
+
+val_original_benchmark_dataset <- dplyr::filter(vis_df_all, Group.1 %in% control_data)
+pr_avg_original <- dplyr::filter(val_original_benchmark_dataset, criteria=="pr")
+single_avg_pr <- mean(pr_avg_original$value)
+pr_avg_original <- aggregate(pr_avg_original$value, list(pr_avg_original$method), mean)
+roc_avg_original <- dplyr::filter(val_original_benchmark_dataset, criteria=="roc")
+single_avg_roc <- mean(roc_avg_original$value)
+roc_avg_original <- aggregate(roc_avg_original$value, list(roc_avg_original$method), mean)
+  
+
+cur_out <- glue("{out_root}/avg_pr_all_datasets.svg")
+svg(cur_out, width = 12, height = 9)
+p<-ggplot(vis_df_all, aes(x=source, y=value, fill=method))+
+  geom_boxplot()+
+  facet_wrap(~criteria)+
+  ggtitle("Average ROC/PR all data")+
+  theme_Publication_blank()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+plot(p)
+dev.off()
+# ggplot(vis_df_all_experiments, aes(x=criteria, y=value, fill=method))+
+#   geom_boxplot()+
+#   ggtitle("Average PR all data")+
+#   theme_Publication_blank()
+```
+# 8% true singlet rate 
+
+```{r fig.height=9, fig.width=12}
+out_root <- "/projects/p31666/zzhang/doublet-bchmk/plots/boxplots"
+# control
+control_data <- c("ID","pdx-MULTI","HMEC-rep-MULTI","mkidney-ch",
+ "pbmc-1A-dm","pbmc-1C-dm","HMEC-orig-MULTI","pbmc-2stim-dm","pbmc-2ctrl-dm","hm-6k", "hm-12k", "J293t-dm", "pbmc-1B-dm",
+ "pbmc-ch","cline-ch",
+ "HEK-HMEC-MULTI","nuc-MULTI")
+
+vis_df_all<-list()
+vis_df_by_dataset<-list()
+for (cur_file in all_out_files){
+  cur_method<-strsplit(cur_file, "/")[[1]][[7]]
+  cur_df<-read.table(cur_file, sep="\t", header=T)
+  cur_df <- dplyr::filter(cur_df, (dbl_act == 0.08) | (ID %in% control_data))
+  # remove smart seq 
+  cur_df <- dplyr::filter(cur_df, !grepl("smart", ID))
+  cur_df<-cur_df[c("ID","roc","pr")]
+  cur_df[["dataset"]]<-sapply(cur_df[["ID"]], function(x){
+    out<-strsplit(x, "_")[[1]][1]
+    if(out=="non"){
+      out<-"non_cancer_10k"
+    }else if(out=="smartseq3"){
+      num_underscore <- str_count(x, "_")
+      if(num_underscore == 2){
+        out <- sub("_[^_]*$", "", x)
+      }
+    }
+    out
+  })
+  # get average of PR and ROC per dataset
+  cur_per_dataset_stats<-aggregate(cur_df[,2:3], list(cur_df$dataset),mean)
+  
+  cur_per_dataset_stats[["method"]]<-cur_method
+  cur_df[["method"]]<-cur_method 
+  vis_df_all[[cur_method]]<-cur_per_dataset_stats
+  vis_df_by_dataset[[cur_method]]<-cur_df
+}
+
+vis_df_by_dataset<-rbindlist(vis_df_by_dataset)|>
+  as.data.frame()
+vis_df_all<-rbindlist(vis_df_all)|>
+  as.data.frame()|>
+  pivot_longer(2:3, names_to = "criteria")|>
+  as.data.frame()
+
+
+vis_df_all_experiments <- dplyr::filter(vis_df_all, !Group.1%in%control_data)
+vis_df_by_dataset_all_experiments <-  dplyr::filter(vis_df_by_dataset, !ID%in%control_data)
+vis_df_all[["source"]]<-sapply(vis_df_all$Group.1, function(x){
+  if(x %in% control_data){
+    out <- "not barcoded"
+  }else{
+    out <- "barcoded"
+  }
+  out
+})
+cur_out <- glue("{out_root}/avg_pr_all_datasets_0.08.svg")
+svg(cur_out, width = 12, height = 9)
+p<-ggplot(vis_df_all, aes(x=source, y=value, fill=method))+
+  geom_boxplot()+
+  facet_wrap(~criteria)+
+  ggtitle("Average ROC/PR all data")+
+  theme_Publication_blank()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+plot(p)
+dev.off()
+```
+
+```{r}
+out_root <- "/projects/p31666/zzhang/doublet-bchmk/plots/boxplots"
+
+cur_out <- glue("{out_root}/avg_pr_per_dataset_8pct_doublet_sum.pdf")
+pdf(cur_out, width = 12, height = 9)
+p <- ggplot(vis_df_by_dataset_all_experiments, aes(x=dataset, y=pr, fill=method))+
+  geom_boxplot()+
+  ggtitle("Average PR per dataset 8% true doublets")+
+  theme_Publication_blank()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+plot(p)
+dev.off()
+
+cur_out <- glue("{out_root}/avg_roc_per_dataset_8pct_doublet_sum.pdf")
+pdf(cur_out, width = 12, height = 9)
+p <- ggplot(vis_df_by_dataset_all_experiments, aes(x=dataset, y=roc, fill=method))+
+  geom_boxplot()+
+  ggtitle("Average ROC per dataset 8% true doublets")+
+  theme_Publication_blank()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+plot(p)
+dev.off()
+
+cur_out <- glue("{out_root}/avg_pr_roc_all_datasets_8pct.pdf")
+pdf(cur_out, width = 12, height = 9)
+p <- ggplot(vis_df_all_experiments, aes(x=criteria, y=value, fill=method))+
+  geom_boxplot()+
+  ggtitle("Average ROC/PR all data 8% true doublets")+
+  theme_Publication_blank()+
+  scale_y_continuous(breaks = round(seq(min(vis_df_all_experiments$value), max(vis_df_all_experiments$value), by = 0.1),1))+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+plot(p)
+dev.off()
+```
+# dataset visualization
+```{r}
+data_dir<-"/projects/p31666/zzhang/doublet-bchmk/data/couting_threshold/scale_factor_0.00003"
+out_dir <- "/projects/p31666/zzhang/doublet-bchmk/plots/dataset_vis"
+all_out_files<-list.files(data_dir, pattern = "*singlets_stats.csv", full.names = T, recursive = T)
+all_two_sample_barcode_singlets_files <- list.files(data_dir, pattern = "*all_sample_two_barcode_singlets.txt", full.names = T, recursive = T)
+# all_cells <- sum(all_stats_df$total_cells)
+# all_singlets <- sum(all_stats_df$total_singlets)
+# print(all_singlets / all_cells)
+
+all_stats_df <- NULL
+
+for(cur_file in all_out_files){
+  cur_df <- read.csv(cur_file)
+  all_stats_df <- rbindlist(list(all_stats_df, cur_df))
+}
+all_stats_df <- all_stats_df|>as.data.frame()
+all_stats_df_singlets <- dplyr::select(all_stats_df, 
+                                       dataset,
+                                       single_sample_barcode_singlets,
+                                       multi_barcode_singlets, 
+                                       dominant_umi_barcode_singlets)
+
+all_stats_df_long <- gather(all_stats_df_singlets, category, count, -dataset)
+
+# add two sample singlets 
+cur_stats_df <- list()
+for(cur_file in all_two_sample_barcode_singlets_files){
+  cur_dataset <- sub(".*/(.*?)_all.*", "\\1", cur_file)
+  print(cur_dataset)
+  if (file.info(cur_file)$size == 0) {
+    cur_count <- 0
+  }else{
+    cur_df <- read.csv(cur_file, header = F)
+    cur_count <- nrow(cur_df)
+    print(length(cur_df$V1) == length(unique(cur_df$V1)))
+  }
+  cur_stats_df[[cur_file]] <- list(
+    "dataset" = cur_dataset, 
+    "category" = "multi_sample_barcode_singlets",
+    "count" = cur_count
+  )
+}
+cur_stats_df <- rbindlist(cur_stats_df)|>
+  as.data.frame()
+all_stats_df_long_combined <- rbind(all_stats_df_long, cur_stats_df)
+all_stats_df_long_combined <- dplyr::filter(all_stats_df_long_combined, dataset != "smartseq3")
+
+svg(glue("{out_dir}/singlets_by_category.svg"), width = 15, height = 8)
+p<-ggplot(all_stats_df_long_combined, aes(x = dataset, y = count, fill = category)) +
+  geom_bar(stat = "identity")+
+  theme_Publication_blank()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+plot(p)
+dev.off()
+
+all_stats_df_long_pct <- all_stats_df_long_combined %>%
+  dplyr::group_by(dataset, category) %>%
+  dplyr::summarize(count = sum(count), .groups = 'drop')%>%
+  group_by(dataset) %>%
+  dplyr::mutate(percentage = count / sum(count) * 100)
+
+p <- ggplot(all_stats_df_long_pct, aes(x = percentage, y = dataset, fill = category)) +
+  geom_bar(stat = "identity") +
+  theme_Publication_blank() +
+  ylab("Percentage") # Label the y-axis as "Percentage"
+svg(glue("{out_dir}/singlets_by_category_pct.svg"), width = 15, height = 8)
+plot(p)
+dev.off()
+
+# all_stats_df <- all_stats_df|>as.data.frame()
+# all_stats_df[["singlet_pct"]] <- all_stats_df[["total_singlets"]]/all_stats_df[["total_cells"]]
+# all_stats_df_singlets <- dplyr::select(all_stats_df, 
+#                                        dataset,
+#                                        total_singlets,
+#                                        total_undetermined
+#                                        )
+# 
+# all_stats_df_long <- gather(all_stats_df_singlets, category, count, -dataset)
+# 
+# 
+# pdf(glue("{out_dir}/singlets_vs_undertimed_count.pdf"), width = 15, height = 8)
+# p<-ggplot(all_stats_df_long, aes(x = dataset, y = count, fill = category)) +
+#   geom_bar(stat = "identity")+
+#   theme_Publication_blank()
+# plot(p)
+# dev.off()
+# 
+# all_stats_df <- all_stats_df|>as.data.frame()
+# all_stats_df_singlets <- dplyr::select(all_stats_df, 
+#                                        dataset,
+#                                        total_singlets,
+#                                        total_undetermined
+#                                        )
+# 
+# all_stats_df_long <- gather(all_stats_df_singlets, category, count, -dataset)|>
+#   group_by(dataset) |>
+#   mutate(percentage = count / sum(count) * 100)
+# 
+# pdf(glue("{out_dir}/singlets_vs_undertimed_pct.pdf"), width = 12, height = 8)
+# p<-ggplot(all_stats_df_long, aes(x = dataset, y = percentage, fill = category)) +
+#   geom_bar(stat = "identity")+
+#   scale_y_continuous()+
+#   theme_Publication_blank()
+# plot(p)
+# dev.off()
+```
+
+# Dot plot
+```{r}
+root_path<-"/projects/p31666/zzhang/doublet-bchmk/data/fatemap_data"
+
+all_good_data<-list.files(path=root_path, recursive = T, pattern="singlets_all.txt", full.names = T)
+all_good_data <- c("/projects/p31666/zzhang/doublet-bchmk/data/fatemap_data/FM05/fatemapID/FM05_singlets_all.txt")
+singlets_stats_df <- list()
+
+for (cur_good_data in all_good_data){
+  cur_dataset<-str_split(cur_good_data, "/")[[1]]|>tail(3)
+  cur_good_data_stats <- str_replace(cur_good_data, "_all.txt", "_stats.csv")|>
+    read.csv()
+  cur_dataset<-cur_dataset[1]
+  cur_dataset_barcode_files<-list.files(path=glue("{root_path}/{cur_dataset}"), recursive = T, pattern="barcodes.tsv.gz", full.names = T)
+  print(cur_good_data)
+  cur_dataset_singlets_present_in_10X<-0
+  cur_dataset_10X_cells<-0
+
+  for(cur_barcode_gz_file in cur_dataset_barcode_files){
+    cur_gz_barcodes<-fread(cur_barcode_gz_file, header=F)$V1
+    cellID_10X_length <- nchar(cur_gz_barcodes[1])
+    
+    # check if "-1" is a part of 10X barcodes
+    if(grepl("-1", cur_gz_barcodes[1])){
+      plus_one <- T
+    }else{
+      plus_one <- F
+    }
+    
+    if(cur_good_data == "/projects/p31666/zzhang/doublet-bchmk/data/fatemap_data/watermelon/fatemapID/watermelon_singlets_all.txt"){
+      plus_one_str <- sub(".*(-\\d+)$", "\\1", cur_gz_barcodes[1])
+      plus_one <- T
+    }else{
+      plus_one_str <- "-1"
+    }
+    
+    df<-read.csv(cur_good_data, sep='\t', header = F)
+    df[["V1"]] <- sapply(df[["V1"]], function(x) {str_remove(x, "-1")})
+    if(plus_one){
+       cur_dataset_good_barcodes<-df[["V1"]]|>
+          as.vector()|>
+          paste(plus_one_str,sep = "")
+    }else{
+      cur_dataset_good_barcodes<-df[["V1"]]|>
+          as.vector()
+    }
+    
+    # check length
+    cellID_fatemap_length <- nchar(cur_dataset_good_barcodes[1])    
+    
+    if(cellID_fatemap_length != cellID_10X_length){
+      print(glue("fatemap cellID {cellID_fatemap_length}; 10X cellID {cellID_10X_length}"))
+      print(cur_barcode_gz_file)
+      next
+    }
+    cur_dataset_10X_cells<-cur_dataset_10X_cells+length(cur_gz_barcodes)
+    
+    cur_sample_overlap_barcodes<-intersect(cur_dataset_good_barcodes, cur_gz_barcodes)
+    cur_dataset_singlets_present_in_10X<-cur_dataset_singlets_present_in_10X+length(cur_sample_overlap_barcodes)
+    
+  }
+  # print(cur_dataset_singlets_present_in_10X)
+  # print(cur_dataset_10X_cells)
+  cur_good_data_stats[["singlets_present_in_10X"]] <- cur_dataset_singlets_present_in_10X
+  cur_good_data_stats[["cells_in_10X"]] <- cur_dataset_10X_cells
+  singlets_stats_df[[cur_good_data]] <- cur_good_data_stats
+}
+
+singlets_stats_df <- rbindlist(singlets_stats_df)|>
+  as.data.frame()
+
+singlets_stats_df[["pct_singlets_in_10X"]] <- singlets_stats_df[["singlets_present_in_10X"]]/singlets_stats_df[["cells_in_10X"]]
+singlets_stats_df[["pct_singlets_recovered_post_qc"]] <- singlets_stats_df$total_singlets / (singlets_stats_df$total_cells - singlets_stats_df$low_umi_cells_removed)
+singlets_stats_df[["pct_singlets_recovered"]] <- singlets_stats_df$total_singlets / singlets_stats_df$total_cells
+
+
+write.csv(singlets_stats_df, "/projects/p31666/zzhang/doublet-bchmk/plots/dataset_vis/singlets_stats.csv", quote = F, row.names = F)
+```
+
+
+# verify some stats on F1
+```{r}
+F1 <- read.table("/projects/p31666/zzhang/doublet-bchmk/data/fatemap_data/FM01/fatemapID/stepFourStarcodeShavedReads50.txt", sep = "\t",
+                 header = T)
+total_cells <- F1$cellID|>unique()|>length()
+print(total_cells)
+8371 + 7439 + 10634 + 5745
+```
+
+
+
+
+
+```{r}
+theme_Publication_blank <- function(base_size=12, base_family="") { #12 For ALDR paper
+  require(grid)
+  require(ggthemes)
+  (theme_foundation(base_size=base_size, base_family=base_family)
+    + theme(plot.title = element_text(size = rel(1.2), hjust = 0.5),
+            text = element_text(),
+            panel.background = element_rect(fill = "transparent",colour = NA),
+            plot.background = element_rect(fill = "transparent",colour = NA),
+            panel.border = element_rect(colour = NA, fill = "transparent"),
+            axis.title = element_text(size = rel(1)),
+            axis.title.y = element_text(angle=90,margin=margin(0,10,0,0)),
+            axis.title.x = element_text(margin=margin(10,0,0,0)),
+            axis.text = element_text(), 
+            axis.line = element_line(colour="black"),
+            axis.ticks = element_line(size = 0.3),
+            axis.line.x = element_line(size = 0.3, linetype = "solid", colour = "black"),
+            axis.line.y = element_line(size = 0.3, linetype = "solid", colour = "black"),
+            panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank(),
+            legend.key = element_rect(colour = NA, fill="transparent"),
+            legend.position = "right",
+            #legend.direction = "horizontal",
+            #legend.box = "horizontal",
+            #legend.key.size= unit(0.2, "cm"),
+            legend.margin = unit(10, "pt"),
+            #legend.title = element_text(face="italic"),
+            plot.margin=unit(c(10,5,5,5),"mm"),
+            strip.background=element_rect(colour="#d8d8d8",fill="#d8d8d8")
+            # strip.text = element_text(face="bold")
+    ))
+  
+} 
+```
+
+
+
+
+
+
+

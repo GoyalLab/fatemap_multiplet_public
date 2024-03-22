@@ -1,0 +1,20 @@
+```{r}
+sce <- readRDS("/projects/b1042/GoyalLab/zzhang/doublet_objects/hybrid/act__0.08/watermelon___T47D-lag-1___exp_0.25__act_0.08.rds")
+score <- colData(sce)
+fg <- score[score$label=="doublet",][["hybrid_score"]]
+bg <- score[score$label=="singlet",][["hybrid_score"]]
+pr <- pr.curve(scores.class0 = fg, scores.class1 = bg, curve = T)
+cur_pr<-pr$auc.integral
+roc <- roc.curve(scores.class0 = fg, scores.class1 = bg, curve = T)
+cur_roc<-roc$auc
+print(glue("Hybrid: pr {cur_pr}; roc {cur_roc}"))
+
+fg <- score[score$label=="doublet",][["cxds_score"]]
+bg <- score[score$label=="singlet",][["cxds_score"]]
+pr <- pr.curve(scores.class0 = fg, scores.class1 = bg, curve = T)
+cur_pr<-pr$auc.integral
+roc <- roc.curve(scores.class0 = fg, scores.class1 = bg, curve = T)
+cur_roc<-roc$auc
+print(glue("Cxds: pr {cur_pr}; roc {cur_roc}"))
+```
+

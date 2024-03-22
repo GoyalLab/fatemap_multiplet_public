@@ -1,0 +1,72 @@
+```{r}
+df_ori <- read.csv("/projects/p31666/zzhang/doublet-bchmk/final/average_sum/averagedAndSummedDoublets.csv")
+```
+
+```{r}
+df <- df_ori %>% group_by(dataset, condition, type) %>% summarise(auprc_mean = mean(auprc),
+                                                                auroc_mean = mean(auroc))
+
+df <- df %>% mutate(pointClassifier = paste0(condition, dataset)) 
+df.summary <- df_ori %>% group_by(condition, type) %>% summarise(auprc_mean = mean(auprc),
+                                                                auroc_mean = mean(auroc))
+df.summary <- df.summary %>% mutate(pointClassifier = paste0(condition, type)) 
+
+
+p <- ggplot(data=df, aes(x=type, y=auprc_mean)) + 
+  # geom_point(aes(color = condition), alpha=0.2) 
+  geom_line(aes(group = pointClassifier), alpha=0.2) +
+  geom_point(data = df.summary, aes(x=type, y=auprc_mean, color = pointClassifier))+
+  geom_line(data = df.summary, aes(x=type, y=auprc_mean, group = pointClassifier)) +
+  # geom_point(data = df, aes(x=type, y=auprc_mean, color = condition), size = 3) +
+  theme_classic(base_size = 16) +
+  theme(axis.line = element_line(colour = "black"), panel.border=element_blank(), 
+        panel.background=element_blank(), panel.grid.major=element_blank(), panel.grid.minor=element_blank(), 
+        legend.position="none") +
+  facet_wrap(~condition, ncol = 4)
+
+print(p)
+# quick check on value
+# auprc mean for celltagmulti doubletfinder average is 0.251
+t <- dplyr::filter(df_ori, condition == "DoubletFinder", type == "average", dataset == "CellTag-multi")
+
+print(mean(t$auprc))
+```
+```{r}
+df <- read.csv("/projects/p31666/zzhang/doublet-bchmk/final/average_sum/averagedAndSummedDoublets.csv")
+
+sub_df <- dplyr::filter(df, type == "average")
+mean_all_auprc <- mean(sub_df$auprc)
+sem_all_auprc <- sd(sub_df$auprc)/sqrt(nrow(sub_df))
+print(glue("{mean_all_auprc} {sem_all_auprc}"))
+
+sub_df <- dplyr::filter(df, type == "sum")
+mean_all_auprc <- mean(sub_df$auprc)
+sem_all_auprc <- sd(sub_df$auprc)/sqrt(nrow(sub_df))
+print(glue("{mean_all_auprc} {sem_all_auprc}"))
+
+sub_df <- dplyr::filter(df, type == "average")
+mean_all_auroc <- mean(sub_df$auroc)
+sem_all_auroc <- sd(sub_df$auroc)/sqrt(nrow(sub_df))
+print(glue("{mean_all_auroc} {sem_all_auroc}"))
+
+sub_df <- dplyr::filter(df, type == "sum")
+mean_all_auroc <- mean(sub_df$auroc)
+sem_all_auroc <- sd(sub_df$auroc)/sqrt(nrow(sub_df))
+print(glue("{mean_all_auroc} {sem_all_auroc}"))
+
+sub_df <- dplyr::filter(df, type == "average")
+mean_all_TNR <- mean(sub_df$TNR)
+sem_all_TNR <- sd(sub_df$TNR)/sqrt(nrow(sub_df))
+print(glue("{mean_all_TNR} {sem_all_TNR}"))
+
+sub_df <- dplyr::filter(df, type == "sum")
+mean_all_TNR <- mean(sub_df$TNR)
+sem_all_TNR <- sd(sub_df$TNR)/sqrt(nrow(sub_df))
+print(glue("{mean_all_TNR} {sem_all_TNR}"))
+
+mean_all_auroc <- mean(df$auroc)
+mean_all_tnr <- mean(df$TNR)
+
+
+```
+

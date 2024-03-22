@@ -1,0 +1,18 @@
+```{r}
+data("sce_chcl")
+set.seed(2021)
+sce_chcl_small <- sce_chcl[, 1:200]
+sce_chcl_small_t <- cxds_bcds_hybrid(sce_chcl_small, estNdbl = T)
+```
+
+```{r}
+data("sce_chcl")
+set.seed(2021)
+sce_chcl_small <- sce_chcl[, 1:200]
+sce_chcl_small_10 <- cxds_bcds_hybrid(sce_chcl_small, estNdbl = 10)
+
+```
+```{r}
+all(sce_chcl_small_t$hybrid_score == sce_chcl_small_10$hybrid_score)
+```
+

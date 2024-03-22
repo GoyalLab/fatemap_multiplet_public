@@ -1,0 +1,94 @@
+```{r}
+library(Seurat)
+library(glue)
+library('Matrix')
+```
+
+```{r}
+root<-"/projects/p31666/zzhang/doublet-bchmk/data/bchmk_paper_real_data"
+all_dataset_files <- list.files(root, pattern = "\\.rds$", recursive = T)
+
+target_pct <- 0.15
+for(cur_dataset in all_dataset_files){
+  cur_dir_name <- sub("\\.rds$", "", basename(cur_dataset)) 
+  if (!dir.exists(cur_dir_name)) {
+    # If it doesn't exist, create the directory
+    full_dir_name <- glue("{root}/{cur_dir_name}")
+    dir.create(full_dir_name)
+  } else {
+    cat("Directory already exists:", cur_dir_name, "\n")
+  }
+  mtx_out<-glue("{root}/{cur_dir_name}/{cur_dir_name}_{target_pct}.mtx")
+  label_out<-glue("{root}/{cur_dir_name}/{cur_dir_name}_labels_{target_pct}.csv")
+  mtx_cell_ids_out <- glue("{root}/{cur_dir_name}/{cur_dir_name}_cell_id_{target_pct}.csv")
+  mtx_gene_ids_out <- glue("{root}/{cur_dir_name}/{cur_dir_name}_gene_id_{target_pct}.csv")
+  cur_dataset_full <- glue("{root}/{cur_dataset}")
+  s<-readRDS(cur_dataset_full)
+  labels <- s[[2]]
+  mtx <- s[[1]]
+  num_doublets <- length(labels[labels == "doublet"])
+  num_singlets <- length(labels[labels == "singlet"])
+  cur_doublet_pct <- num_doublets/length(labels)
+  if(cur_doublet_pct < target_pct){
+    # remove singlets
+    target_singlets_num <- round((1 -target_pct) * num_doublets/target_pct)
+    print(num_doublets/(num_doublets + target_singlets_num))
+    num_to_remove <- num_singlets - target_singlets_num
+    print("Removing singlets.")
+    # remove singlets by getting the index 
+    singlets_index <- which(labels == "singlet")
+    index_to_remove <- singlets_index[1:num_to_remove]
+  }else{
+    # remove doublets 
+    target_doublets_num <- round(target_pct * num_singlets /(1 - target_pct))
+    print(target_doublets_num/(target_doublets_num + num_singlets))
+    num_to_remove <- num_doublets - target_doublets_num
+    print("Removing doublet.")
+    
+    doublets_index <- which(labels == "doublet")
+    index_to_remove <- doublets_index[1:num_to_remove]
+  }
+  total_elements <- length(labels)
+  all_indices <- 1:total_elements
+  indices_to_keep <- setdiff(all_indices, index_to_remove)
+  labels <- labels[indices_to_keep]
+
+  new_labels <- labels[]
+  total_columns <- ncol(mtx)
+  all_columns <- 1:total_columns
+  columns_to_keep <- setdiff(all_columns, index_to_remove)
+  mtx <- mtx[, columns_to_keep]
+
+  # file.copy(from = cur_dataset_full, to = glue("{root}/{cur_dir_name}"))
+
+  writeMM(mtx, mtx_out)
+  gene_ids <- rownames(mtx)
+  cell_ids <- colnames(mtx)
+  write.table(labels, label_out, quote = F, sep="\n", row.names = F, col.names = F)
+  write.table(gene_ids, mtx_gene_ids_out, quote = F, sep="\n", row.names = F, col.names = F)
+  write.table(cell_ids, mtx_cell_ids_out, quote = F, sep="\n", row.names = F, col.names = F)
+}
+```
+
+
+
+```{r}
+root<-"/projects/p31666/zzhang/doublet-bchmk/data/bchmk_paper_real_data"
+datasets<-c("pbmc-2ctrl-dm/pbmc-2ctrl-dm.rds", "J293t/J293t-dm.rds", "hm-12k/hm-12k.rds")
+datasets<-glue("{root}/{datasets}")
+```
+
+```{r}
+for (cur_dataset in datasets){
+  s<-readRDS(cur_dataset)
+  mtx_out<-str_replace(cur_dataset, ".rds", ".mtx")
+  label_out<-str_replace(cur_dataset, ".rds", "_labels.csv")
+  print(cur_dataset)
+  print(length(s[[2]]))
+  print(table(s[[2]]))
+  writeMM(s[[1]], mtx_out)
+  write.table(s[[2]], label_out, quote = F, sep="\n", row.names = F, col.names = F)
+  
+}
+```
+

@@ -1,0 +1,205 @@
+```{r}
+require(DoubletFinder)
+require(PRROC)
+require(Matrix)
+require(Seurat)
+require(glue)
+require(purrr)
+require(data.table)
+require(dplyr)
+require(parallel)
+require(stringr)
+library(ggplot2)
+library(ggrepel)
+set.seed(2022)
+```
+
+
+```{r}
+root_path<-"/projects/p31666/zzhang/doublet-bchmk/data/fatemap_data"
+counting_root <- "/projects/p31666/zzhang/doublet-bchmk/data/couting_threshold/scale_factor_0.00003"
+all_counting_files <- list.files(counting_root)
+meta <- "/projects/p31666/zzhang/doublet-bchmk/repo/meta/singletCountingComparison_csv.csv"
+mt <- read.csv(meta)
+mt[["unique_identifier"]] <- glue("{mt$dataset}__{mt$oldSample}")
+conv <- mt$newSample
+names(conv) <- mt$unique_identifier
+
+# get each sample 
+all_sample_dirs <- list.dirs(root_path, full.names = T)
+all_sample_dirs <- all_sample_dirs[grepl(all_sample_dirs, pattern = "10X")]
+all_sample_10X_dirs <- all_sample_dirs[!grepl("10X$", all_sample_dirs)]
+
+#
+stats_list <- list()
+
+# iterate through each to correct for 10X samples
+for(cur_sample_10X_dir in all_sample_10X_dirs){
+  cur_sample_10X_name <- basename(cur_sample_10X_dir)
+  cur_sample_dataset_name <- tail(strsplit(cur_sample_10X_dir, "/")[[1]], 3) |>
+    head(1)
+  cur_sample_identifier <- glue("{cur_sample_dataset_name}__{cur_sample_10X_name}")
+  cur_sample_raw_name <- conv[[cur_sample_identifier]]
+  cur_sample_pattern <- glue("_{cur_sample_raw_name}__")
+  cur_sample_singlet_pair_file <- all_counting_files[grepl(cur_sample_pattern, all_counting_files) 
+                                         & grepl(cur_sample_dataset_name, all_counting_files)
+                                         & grepl("singlet_pairs.csv", all_counting_files)]
+  cur_sample_singlet_pair_file <- glue("{counting_root}/{cur_sample_singlet_pair_file}")
+  cur_sample_singlets_files <- all_counting_files[grepl(cur_sample_pattern, all_counting_files) 
+                                         & grepl(cur_sample_dataset_name, all_counting_files)
+                                         & grepl("singlets.txt", all_counting_files)]
+  
+  if(length(cur_sample_singlets_files) > 3){
+    print("ERROR: Extra sample may have been grabbed!")
+    break
+  }else if(length(cur_sample_singlets_files) == 0){
+    print("ERROR: No matching singlets files!")
+    cur_stats_list <- list(
+      "dataset" = cur_sample_dataset_name,
+      "10X_sample_name" = cur_sample_10X_name,
+      "barcode_file_sample_name" = cur_sample_raw_name,
+      "10X_cell_ids_count" = NA,
+      "singlet_code_singlets" = NA,
+      "singletCode_singlets_in_10X" = NA
+    )
+    stats_list[[cur_sample_10X_dir]] <- cur_stats_list
+    next
+  }else if(length(cur_sample_singlets_files) != 3){
+    print("ERROR: Check number of singlets files!")
+    break
+  }
+  
+  cur_sample_singlets_files_full_path <- glue("{counting_root}/{cur_sample_singlets_files}")
+  
+  # make singlets all file
+  singlets_all_file <- glue("{cur_sample_10X_dir}/singlets_all.txt")
+  singlets_all <- c()
+  for(cur_singlet_file in cur_sample_singlets_files_full_path){
+    if(file.size(cur_singlet_file) != 0){
+      cur_file_singlets <- read.delim(cur_singlet_file, header = F, sep = "\n")[, 1]|>
+        as.vector()
+      singlets_all <- c(singlets_all, cur_file_singlets)
+    }
+  }
+  
+  all_unique <- !duplicated(singlets_all)|>all()
+  if(!all_unique){
+    print("ERROR: duplicate singlets identified")
+    break
+  }else{
+    fileConn<-file(singlets_all_file)
+    writeLines(singlets_all, fileConn)
+    close(fileConn)
+  }
+  
+  # get the sample's barcodes file
+  cur_barcode_gz_file <- list.files(cur_sample_10X_dir, pattern = "barcodes.tsv.gz",
+                                    full.names = T)
+  cur_gz_barcodes<-fread(cur_barcode_gz_file, header=F)$V1
+  cellID_10X_length <- nchar(cur_gz_barcodes[1])
+  
+  # check if "-1" is a part of 10X barcodes
+  if(grepl("-1", cur_gz_barcodes[1])){
+    plus_one <- T
+  }else{
+    plus_one <- F
+  }
+  
+  if(cur_sample_dataset_name == "watermelon"){
+    plus_one_str <- sub(".*(-\\d+)$", "\\1", cur_gz_barcodes[1])
+    plus_one <- T
+  }else{
+    plus_one_str <- "-1"
+  }
+  
+  df <- read.csv(singlets_all_file, sep='\t', header = F)
+  df[["V1"]] <- sapply(df[["V1"]], function(x) {str_remove(x, "-1")})
+  
+  if(plus_one){
+     cur_dataset_good_barcodes<-df[["V1"]]|>
+        as.vector()|>
+        paste(plus_one_str,sep = "")
+  }else{
+    cur_dataset_good_barcodes<-df[["V1"]]|>
+        as.vector()
+  }
+  
+  # check length
+  cellID_fatemap_length <- nchar(cur_dataset_good_barcodes[1])    
+  
+  if(cellID_fatemap_length != cellID_10X_length){
+    print(glue("fatemap cellID {cellID_fatemap_length}; 10X cellID {cellID_10X_length}"))
+    print(cur_barcode_gz_file)
+    break
+  }
+  
+  # overlap this sample's singlets with this sample's cell IDs in 10X
+  cur_sample_overlap_barcodes<-intersect(cur_dataset_good_barcodes, cur_gz_barcodes)
+  singlet_pairs<-combn(cur_sample_overlap_barcodes, 2, simplify =F)
+  barcodes_pairs_picked<-sample(singlet_pairs, length(cur_gz_barcodes), replace = F)
+  cur_out_file<-str_replace(cur_barcode_gz_file, "barcodes.tsv.gz", "corrected_singlet_pairs.csv")
+  lines_to_write<-c()
+  for(cur_pair in barcodes_pairs_picked){
+    cur_line<-paste0(cur_pair, collapse = ", ")
+    lines_to_write<-c(lines_to_write, cur_line)
+  }
+  fileConn<-file(cur_out_file)
+  writeLines(lines_to_write, fileConn)
+  close(fileConn)
+  
+  cur_stats_list <- list(
+    "dataset" = cur_sample_dataset_name,
+    "10X_sample_name" = cur_sample_10X_name,
+    "barcode_file_sample_name" = cur_sample_raw_name,
+    "10X_cell_ids_count" = length(cur_gz_barcodes),
+    "singlet_code_singlets" = length(cur_dataset_good_barcodes),
+    "singletCode_singlets_in_10X" = length(cur_sample_overlap_barcodes)
+  )
+  stats_list[[cur_sample_10X_dir]] <- cur_stats_list
+}
+
+stats_df <- stats_list|>
+  rbindlist()|>
+  as.data.frame()
+
+write.csv(stats_df, "/projects/p31666/zzhang/doublet-bchmk/plots/dataset_vis/singlet_stats.csv", quote = F, row.names = F)
+```
+
+```{r}
+t <- read.table("/projects/p31666/zzhang/doublet-bchmk/data/fatemap_data/Biorxiv/fatemapID/stepFourStarcodeShavedReads50.txt", sep = "\t", header = T)
+t_3 <- dplyr::filter(t, SampleNum == 3)[["cellID"]]|>unique()
+t_3<-t_3|>
+      as.vector()|>
+      paste("-1",sep = "")
+t_3_10X_barcodes <- fread("/projects/p31666/zzhang/doublet-bchmk/data/fatemap_data/Biorxiv/10X/3_LSD1i_A/barcodes.tsv.gz", header=F)$V1
+intersect(t_3, t_3_10X_barcodes)
+```
+
+
+
+
+```{r fig.height=8, fig.width=8}
+singlets_stats_df <- read.csv("/projects/p31666/zzhang/doublet-bchmk/plots/dataset_vis/singlets_stats.csv")
+ggplot(singlets_stats_df, aes(x = total_cells, y = total_singlets, color = pct_singlets_in_10X)) +
+  geom_point(size = 3) +
+  scale_color_gradient(low = "blue", high = "red") +  # Color gradient for pct_singlets_in_10X
+  geom_text_repel(aes(label = dataset)) +  # Label points with dataset
+  theme_minimal() +
+  labs(x = "Total Cells", y = "Total Singlets", color = "% Singlets in 10X")
+```
+
+```{r}
+long_df <- pivot_longer(singlets_stats_df, 
+                        cols = c(single_sample_barcode_singlets, 
+                                 multi_barcode_singlets, 
+                                 dominant_umi_barcode_singlets), 
+                        names_to = "singlet_type", 
+                        values_to = "value")
+ggplot(long_df, aes(x = dataset, y = value, fill = singlet_type)) +
+  geom_bar(stat = "identity") +
+  theme_minimal() +
+  labs(x = "Dataset", y = "Value", fill = "Singlet Type")+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+

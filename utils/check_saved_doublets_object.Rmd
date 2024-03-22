@@ -1,0 +1,13 @@
+```{r}
+doublet_finder_obj <- readRDS("/projects/b1042/GoyalLab/zzhang/doublet_objects/doublet_finder/act__0.1/FM01___sample1___exp_0.1__act_0.1.rds")
+hybrid_obj <- readRDS("/projects/b1042/GoyalLab/zzhang/doublet_objects/hybrid/act__0.1/FM01___sample1___exp_0.1__act_0.1.rds")
+
+```
+```{r}
+hybrid_doublets <- hybrid_obj@colData|>as.data.frame()|>dplyr::filter(label=="singlet")|>rownames()|>sort()
+doublet_finder_doublets <- doublet_finder_obj@meta.data|>dplyr::filter(label=="singlet")|>rownames()|>sort()
+
+(hybrid_doublets == doublet_finder_doublets)|>all()
+
+```
+

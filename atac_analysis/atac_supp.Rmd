@@ -1,0 +1,367 @@
+```{r}
+library(scDblFinder)
+```
+
+# watermelon but with 6*1000 subsamples 
+
+```{r}
+atac_df <- read.table("/projects/b1042/GoyalLab/zzhang/atac_data/watermelon/new.tsv", sep = "\t")
+atac_df[["cellID"]] <- rownames(atac_df)
+count_df <- read.csv("/projects/b1042/GoyalLab/zzhang/atac_data/watermelon/watermelonBarcodeUmi.csv")
+umi_str <- "umi2"
+watermelon_dir <- glue("/projects/p31666/zzhang/doublet-bchmk/data/atac/{umi_str}")
+out_dir <- glue("/projects/p31666/zzhang/doublet-bchmk/data/atac/result/{umi_str}")
+common_cells <- intersect(atac_df|>rownames()|>unique(), count_df$cellID|>unique())
+
+singletCode_singlets <- c()
+all_singletCode_singlets_files <- list.files(watermelon_dir, pattern = "__singlets_merged.txt", full.names = T)
+for(cur_file in all_singletCode_singlets_files){
+  cur_count_singlets <- read.table(cur_file, header = F)[["V1"]]
+  singletCode_singlets <- c(singletCode_singlets, cur_count_singlets)
+}
+# find ground truth singlets in the common 15k
+singleCode_singlets_common_15k <- intersect(common_cells, singletCode_singlets)
+
+pct <- c()
+test_id <- c()
+TN_list <- c()
+FP_list <- c()
+TNR_list <- c()
+for(test_num in 1:6){
+  cur_test_id <- glue("random_{test_num}")
+  # randomly sample 1000 cells from the common 15k cells 
+  cur_cells <- sample(common_cells, 1000)
+  
+  # filter the amulet output by these 1000 cells 
+  cur_amulet_df <- dplyr::filter(atac_df, cellID %in% cur_cells)
+  
+  # define amulet odublets and singlets 
+  cur_amulet_singlets <- rownames(dplyr::filter(cur_amulet_df, q.value > 0.1))
+  cur_amulet_doublets <- rownames(dplyr::filter(cur_amulet_df, q.value <= 0.1))
+  
+  # get ground truth from these 1000 cells 
+  cur_1000_ground_truth <- intersect(cur_cells, singleCode_singlets_common_15k)
+  
+  # get what are labelled as singlets vs. doublets in the 1000 cells 
+  cur_amulet_singlets_in_ground_truth <- intersect(cur_amulet_singlets, cur_1000_ground_truth)
+  cur_amulet_doublets_in_ground_truth <- intersect(cur_amulet_doublets, cur_1000_ground_truth)
+  cur_test_pct <- length(cur_amulet_singlets_in_ground_truth)/length(cur_1000_ground_truth)
+  
+  # amulet identified as singlets, so does singletCode
+  TN <- length(cur_amulet_singlets_in_ground_truth)
+  # amulet identified as doublets, singletCode identified as singlet
+  FP <- length(cur_amulet_doublets_in_ground_truth)
+  TNR <- TN/(TN+FP)
+  test_id <- c(test_id, cur_test_id)
+  pct <- c(pct, cur_test_pct)
+  TN_list <- c(TN_list, TN)
+  FP_list <- c(FP_list, FP)
+  TNR_list <- c(TNR_list, TNR)
+  
+  # save output to watermelon dir 
+  cur_chosen_cell_file <- glue("{out_dir}/{cur_test_id}.txt")
+  write.csv(as.data.frame(cur_cells), cur_chosen_cell_file, quote = F, row.names = F)
+  
+}
+res <- list(
+  "id" = test_id,
+  # "groud_truth_overlap" = pct,
+  "TN" = TN_list,
+  "FP" = FP_list,
+  "TNR" = TNR_list
+)|>
+  as.data.frame()
+
+cur_res_file <- glue("{out_dir}/res.csv")
+write.csv(res, cur_res_file, quote = F, row.names = F)
+
+```
+
+
+# watermelon per sample result 
+
+```{r}
+atac_df <- read.table("/projects/b1042/GoyalLab/zzhang/atac_data/watermelon/new.tsv", sep = "\t")
+atac_df[["cellID"]] <- rownames(atac_df)
+umi_str <- "umi1"
+count_df <- read.csv("/projects/b1042/GoyalLab/zzhang/atac_data/watermelon/watermelonBarcodeUmi.csv")
+watermelon_dir <- "/projects/p31666/zzhang/doublet-bchmk/data/atac/{umi_str}"|>glue()
+common_cells <- intersect(atac_df|>rownames()|>unique(), count_df$cellID|>unique())
+
+# keep only the common cells 
+amulet_df <- dplyr::filter(atac_df, cellID %in% common_cells)
+amulet_df[["sample"]] <- sapply(amulet_df$cellID, function(x){
+  strsplit(x, "-")[[1]][2]
+})
+count_df <- dplyr::filter(count_df, cellID %in% common_cells)
+count_df[["sample_num"]] <- sapply(count_df$cellID, function(x){
+  strsplit(x, "-")[[1]][2]
+})
+
+# split into per sample
+sample_cell_id <- list(
+  "1"=c(),
+  "2"=c(),
+  "3"=c(),
+  "4"=c(),
+  "5"=c(),
+  "6"=c()
+)
+for(cur_cell_id in common_cells){
+  cur_sample <- strsplit(cur_cell_id, "-")[[1]][2]
+  sample_cell_id[[cur_sample]] <- c(sample_cell_id[[cur_sample]], cur_cell_id)
+}
+
+amulet_singlets <- c()
+amulet_doublets <- c()
+count_singlets <- c()
+sample_num <- c()
+sample_total_cells <- c()
+amulet_in_singletCode_singlets <- c()
+TNR_list <- c()
+
+# go through each sample
+for(cur_sample_num in amulet_df$sample|>unique()){
+  
+  # get all the cells for that sample 
+  cur_sample_total_cells <- sample_cell_id[[cur_sample_num]]
+  
+  # define the per sample singlet and doublet 
+  # already filtered for just the common cells
+  cur_amulet_df <- dplyr::filter(amulet_df, sample == cur_sample_num)
+  cur_amulet_singlets <- rownames(dplyr::filter(cur_amulet_df, q.value > 0.1))
+  cur_amulet_doublets <- rownames(dplyr::filter(cur_amulet_df, q.value <= 0.1))
+  
+  # find the corresponding singlets
+  search_pattern <- glue("{cur_sample_num}__singlets_merged.txt")
+  cur_count_singlets_file <- list.files(watermelon_dir, pattern = search_pattern, full.names = T)
+  cur_count_singlets <- read.table(cur_count_singlets_file, header = F)[["V1"]]
+  cur_count_singlets_common <- cur_count_singlets[cur_count_singlets %in% cur_sample_total_cells]
+
+  amulet_singlets <- c(amulet_singlets, intersect(cur_sample_total_cells, cur_amulet_singlets)|>length())
+  amulet_doublets <- c(amulet_doublets, intersect(cur_sample_total_cells, cur_amulet_doublets)|>length())
+  count_singlets <- c(count_singlets, intersect(cur_sample_total_cells, cur_count_singlets)|>length())
+  sample_num <- c(sample_num, cur_sample_num)
+  sample_total_cells <- c(sample_total_cells, length(cur_sample_total_cells))
+  
+  cur_amulet_singlets_in_ground_truth <- intersect(cur_amulet_singlets, cur_count_singlets_common)
+  cur_amulet_doublets_in_ground_truth <- intersect(cur_amulet_doublets, cur_count_singlets_common)
+  
+  # check for enrichment of singletCode singlets 
+  # amulet identified as singlets, so does singletCode
+  TN <- length(cur_amulet_singlets_in_ground_truth)
+  # amulet identified as doublets, singletCode identified as singlet
+  FP <- length(cur_amulet_doublets_in_ground_truth)
+  TNR <- TN/(TN+FP)
+  amulet_singlets_in_singletCode_singlets <- intersect(cur_count_singlets, cur_amulet_singlets)
+  num_amulet_singlets_in_singletCode_singlets <- length(amulet_singlets_in_singletCode_singlets)
+  amulet_in_singletCode_singlets <- c(amulet_in_singletCode_singlets, num_amulet_singlets_in_singletCode_singlets)
+  TNR_list <- c(TNR_list, TNR)
+}
+
+df <- list(
+  "amulet_singlets"=amulet_singlets,
+  "amulet_doublets"=amulet_doublets,
+  "singletCode_singlets"=count_singlets,
+  "sample"=sample_num,
+  "sample_cell_count"=sample_total_cells,
+  "common_singlets"=amulet_in_singletCode_singlets,
+  "TNR"=TNR_list
+)|>as.data.frame()
+
+df[["common_singlets_singletCode_pct"]] <- df[["common_singlets"]] / df[["singletCode_singlets"]]
+df[["amulet_doublet_pct"]] <- df[["amulet_doublets"]] / df[["sample_cell_count"]]
+out_file<- glue("/projects/p31666/zzhang/doublet-bchmk/data/atac/result/per_sample_result_{umi_str}.csv")
+write.csv(df, out_file, row.names = F, quote = F)
+
+# t <- read.table("/projects/p31666/zzhang/doublet-bchmk/data/atac/umi1/out_MCF7-lag-4__multiplets.txt", header = F)[["V1"]]
+# t2 <- intersect(cur_total_cells, t)
+# (length(t2) + length(barcode_singlets)) == length(cur_total_cells)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{r}
+lineage_df <- "/projects/p31666/zzhang/doublet-bchmk/data/atac/lineage_db.csv"|>read.csv(header = F)
+
+duplicated_barcodes <- unique((lineage_df[duplicated(lineage_df$V3),][["V3"]]))
+duplicated_df <- dplyr::filter(lineage_df, V3 %in% duplicated_barcodes)
+
+barcodes_to_discard <- c()
+for(cur_b in duplicated_barcodes){
+  cur_df <- dplyr::filter(duplicated_df, V3 == cur_b)
+  cur_sample_num <- cur_df$V2|>unique()
+  if(length(cur_sample_num) != 1){
+    barcodes_to_discard <- c(barcodes_to_discard, cur_b)
+  }
+}
+barcodes_to_discard <- barcodes_to_discard|>unique()
+
+lineage_df_unique <- dplyr::filter(lineage_df, !V3 %in% barcodes_to_discard)
+
+# check if all are unique at a sample level
+for(cur_b in lineage_df_unique$V3|>unique()){
+  cur_df <- dplyr::filter(lineage_df_unique, V3 == cur_b)
+  cur_sample_num <- cur_df$V2|>unique()
+  if(length(cur_sample_num) != 1){
+    print("A")
+  }
+}
+
+# make dictionary for mapping 
+
+mapping_df <- lineage_df_unique|>dplyr::select(V2, V3)|>unique()
+mapping_dict <- mapping_df$V2
+names(mapping_dict) <- mapping_df$V3
+```
+
+
+
+```{r}
+fragments <- "/projects/b1042/GoyalLab/zzhang/atac_data/fragments.tsv.gz"
+res <- amulet(fragments)
+write.table(res, file = "/projects/b1042/GoyalLab/zzhang/atac_data/watermelon.tsv", quote = FALSE, sep="\t",row.names = TRUE)
+# res <- read.table("/projects/b1042/GoyalLab/zzhang/atac_data/watermelon.tsv", sep="\t", header = T)
+
+res[["sample"]] <- sapply(res|>rownames(), function(x){
+  x <- str_remove(x, "-1")
+  if(x %in% names(mapping_dict)){
+    mapping_dict[[x]]
+  }else{
+    "Not Found"
+  }
+})
+```
+
+
+```{r}
+all_barcodes <- rownames(res)
+singlets_0.05 <- rownames(dplyr::filter(res, q.value > 0.05))
+singlets_0.01 <- rownames(dplyr::filter(res, q.value > 0.01))
+
+print(length(singlets_0.05)/length(all_barcodes))
+print(length(singlets_0.01)/length(all_barcodes))
+
+```
+
+```{r}
+df <- read.csv("/projects/p31666/zzhang/doublet-bchmk/data/atac/Filtered_atacSeq_CellID_Barcode.csv")
+total_cell_id <- df$cellID|>unique()|>length()
+df_count <- df %>%
+  dplyr::group_by(cellID, sample) %>%
+  dplyr::summarise(count = n(), .groups = 'drop')
+single_barcode <- dplyr::filter(df_count, count ==1)
+
+
+df_single_barcode <- dplyr::filter(df, cellID %in% single_barcode$cellID)
+
+df_count_umi <- df_single_barcode %>%
+  dplyr::group_by(cellID, barcode, sample) %>%
+  dplyr::summarise(count = n(), .groups = 'drop')
+print(df_count_umi$count|>unique())
+
+print((nrow(df_count_umi))/total_cell_id)
+```
+# check cell ID overlap with barcode file
+```{r}
+df_count_umi[["sample"]] <- sapply(df_count_umi$cellID, function(x){
+  if(x %in% names(mapping_dict)){
+    mapping_dict[[x]]
+  }else{
+    "Not Found"
+  }
+})
+
+```
+
+
+# check overlap between barcode file cellID and fragment file cellID
+```{r}
+df <- read.csv("/projects/p31666/zzhang/doublet-bchmk/data/atac/Filtered_atacSeq_CellID_Barcode.csv")
+barcode_cell_id <- df$cellID|>unique()
+lineage_cell_id <- lineage_df$V3
+fragment_cell_id <- res|>rownames()
+barcode_singlet_cell_id <- df_count_umi$cellID
+
+print(length(intersect(barcode_cell_id, lineage_cell_id)))
+print(length(intersect(fragment_cell_id, lineage_cell_id)))
+print(length(intersect(fragment_cell_id, barcode_cell_id)))
+print(length(intersect(lineage_cell_id, barcode_singlet_cell_id)))
+
+```
+
+
+```{r}
+# Load the ggplot2 package
+library(ggplot2)
+
+data <- data.frame(
+  Group = c("Amulet", "Amulet", "Barcode", "Barcode"),
+  Start = c(0, 0.7880819, 0, 0.8834061),
+  End = c(0.7880819, 1, 0.8834061, 1),
+  Segment = factor(c("Singlets", "Doublets", "Singlets", "Doublets"))
+)
+
+# Calculate the height of each segment
+data$Height <- with(data, End - Start)
+
+# Plotting
+p <- ggplot(data, aes(x = Group, y = Height, fill = Segment)) + 
+  geom_bar(stat = "identity", position = "stack") + 
+  scale_fill_brewer(palette = "Pastel1") + 
+  theme_minimal() +
+  labs(x = "", y = "Proportion", fill = "Segment") +
+  ggtitle("ATAC Singlet Barplot")
+
+svg(filename = "/projects/p31666/zzhang/doublet-bchmk/plots/atac/barplot.svg")
+plot(p)
+dev.off()
+```
+
+
+```{r}
+# test on if it is indeed one barcode for one cell ID
+t <- sample(single_barcode$cellID, 100)
+for(cur_b in t){
+  cur_df <- dplyr::filter(df, cellID == cur_b)
+  if(length(unique(cur_df$barcode)) != 1){
+    print("A")
+    break
+  }
+}
+
+```
+
+
+```{r}
+cur_sample_singlets <- read.csv("/projects/p31666/zzhang/doublet-bchmk/data/fatemap_data/watermelon/10X/T47D-lag-2/singlets_all.txt", header = F)[["V1"]]
+
+atac_singlets <- single_barcode$cellID
+fragment_singlets <- res|>rownames()
+length(intersect(cur_sample_singlets, fragment_singlets))
+```
+
+
+

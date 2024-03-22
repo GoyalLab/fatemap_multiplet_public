@@ -1,0 +1,48 @@
+```{r}
+library(Seurat)
+
+FM04_all_reads <- read.table("/projects/p31666/zzhang/doublet-bchmk/data/fatemap_data/FM04/fatemapID/stepFourStarcodeShavedReads50.txt", sep = "\t", header = T)
+FM01_1_s <- Read10X(data.dir = "/projects/p31666/zzhang/doublet-bchmk/data/fatemap_data/FM04/10X/BC18_B1")|>
+  CreateSeuratObject()
+FM01_singlets_all <- "/projects/p31666/zzhang/doublet-bchmk/data/fatemap_data/FM04/fatemapID/FM04_singlets_all.txt"
+
+FM04_cross_sample_cell_id <- "/projects/p31666/zzhang/doublet-bchmk/data/couting_threshold/scale_factor_0.00003/FM04_all_sample_two_barcode_cell_id.txt"
+FM04_cross_sample_cell_id <- read.delim(FM04_cross_sample_cell_id, header = F, sep = "\n")[, 1]|>
+    as.vector()|>
+    paste("-1", sep = "")
+
+singlets <- read.delim(FM01_singlets_all, header = F, sep = "\n")[, 1]|>
+    as.vector()|>
+    paste("-1", sep = "")
+
+old_singlets_FM04_1 <- singlets[singlets %in% colnames(FM01_1_s)]
+
+new_singlets_FM04_1_single_barcode  <- "/projects/p31666/zzhang/doublet-bchmk/data/couting_threshold/scale_factor_0.00003/FM04_1__single_barcode_singlets.txt"
+new_singlets_FM04_1_multi_barcode <- "/projects/p31666/zzhang/doublet-bchmk/data/couting_threshold/scale_factor_0.00003/FM04_1__multi_barcode_singlets.txt"
+new_singlets_FM04_1_dominant_umi <- "/projects/p31666/zzhang/doublet-bchmk/data/couting_threshold/scale_factor_0.00003/FM04_1__dominant_umi_singlets.txt"
+
+new_singlets_FM04_1_single_barcod_singlets <- read.delim(new_singlets_FM04_1_single_barcode, header = F, sep = "\n")[, 1]|>
+    as.vector()|>
+    paste("-1", sep = "")
+
+new_singlets_FM04_1_multi_barcode_singlets <- read.delim(new_singlets_FM04_1_multi_barcode, header = F, sep = "\n")[, 1]|>
+    as.vector()|>
+    paste("-1", sep = "")
+
+new_singlets_FM04_1_dominant_umi_singlets <- read.delim(new_singlets_FM04_1_dominant_umi, header = F, sep = "\n")[, 1]|>
+    as.vector()|>
+    paste("-1", sep = "")
+
+new_singlets_FM04_1 <- c(new_singlets_FM04_1_single_barcod_singlets, new_singlets_FM04_1_multi_barcode_singlets, new_singlets_FM04_1_dominant_umi_singlets)
+
+new_singlets_FM04_1 <- new_singlets_FM04_1[new_singlets_FM04_1 %in% colnames(FM01_1_s)]
+
+
+diff_singlets_FM04_1_new <- new_singlets_FM04_1[!new_singlets_FM04_1 %in% old_singlets_FM04_1]
+diff_singlets_FM04_1_new[!diff_singlets_FM04_1_new %in% FM04_cross_sample_cell_id]
+
+diff_singlets_FM04_1_old <- old_singlets_FM04_1[!old_singlets_FM04_1 %in% new_singlets_FM04_1]
+
+multilane_singets
+```
+
