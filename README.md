@@ -14,7 +14,7 @@ This folder contains various analysis scripts used throughout the paper. Some ke
   
 # Data Structure
 
-The data is deposited at this link. It has the following stucture. All the `corrected_singlet_pairs` files indicate which singlets
+The datasets all have the following structure. All the `corrected_singlet_pairs` files indicate which singlets
 are used to simulate doublets in which sample. The `singlets_all.txt` file contains all the singlets for that sample in that dataset. 
 
 ```bash
@@ -31,6 +31,9 @@ are used to simulate doublets in which sample. The `singlets_all.txt` file conta
 ├── FM02
 ├── FM03
 ├── ...
+├── ClonMapper
+├── SPLINTR
+├── TREX
 └── Other Datasets
 ```
 
