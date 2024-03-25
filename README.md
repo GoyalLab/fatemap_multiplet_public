@@ -8,9 +8,9 @@ This folder contains various analysis scripts used throughout the paper. Some ke
 - `atac_analysis`: scripts to assess Amulet performance on barcode singlets
 - `plotScripts`: scripts used for plotting
 - `heterogeneity`: scripts to assess heterogeneity across samples.
-- 'otherBarcodingMethods': scripts to adapt data from other barcoding technologies to have singlets identified with singletCode.
-- 'cellTypeAnnotation': scripts to annotate cell type.
-- 'cellCount': scripts to process data according to the original publications for the purpose of comparing cell numbers at different stages of processing, including singlet recovery.
+- `otherBarcodingMethods`: scripts to adapt data from other barcoding technologies to have singlets identified with singletCode.
+- `cellTypeAnnotation`: scripts to annotate cell type.
+- `cellCount`: scripts to process data according to the original publications for the purpose of comparing cell numbers at different stages of processing, including singlet recovery.
   
 # Data Structure
 
