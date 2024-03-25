@@ -37,4 +37,4 @@ We defnie singets based on the following criteria:
 
 # Webiste
 
-For more information, please visit our [website]([(https://goyallab.github.io/SingletCodeWebsite]((https://goyallab.github.io/SingletCodeWebsite)) for results, figures, and more!
+For more information, please visit our [website](https://goyallab.github.io/SingletCodeWebsite) for results, figures, and more!
