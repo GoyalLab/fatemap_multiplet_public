@@ -1,4 +1,4 @@
-# Fatemap Barcode Project
+# singletCode
 
 This is the official public code repo of analysis scripts for our paper titled: **Synthetic DNA barcodes identify singlets in scRNA-seq datasets and evaluate doublet algorithms**.
 
@@ -6,10 +6,11 @@ This folder contains various analysis scripts used throughout the paper. Some ke
 - `benchmarking`: scripts to benchmark the tools on barcoded datasets
 - `functional_analysis`: scripts to assess doublets' impact on downstream analysis
 - `atac_analysis`: scripts to assess Amulet performance on barcode singlets
-# Fatemap Data Structure
+- `atac_analysis`: scripts to assess Amulet performance on barcode singlets
+# Data Structure
 
 The data is deposited at this link. It has the following stucture. All the `corrected_singlet_pairs` files indicate which singlets
-are used to simulate doublets in which sample. The `singlets.txt` file contains all the singlets for that sample in that dataset. 
+are used to simulate doublets in which sample. The `singlets_all.txt` file contains all the singlets for that sample in that dataset. 
 
 ```bash
 ├── FM01
