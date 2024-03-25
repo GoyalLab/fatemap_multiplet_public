@@ -6,7 +6,12 @@ This folder contains various analysis scripts used throughout the paper. Some ke
 - `benchmarking`: scripts to benchmark the tools on barcoded datasets
 - `functional_analysis`: scripts to assess doublets' impact on downstream analysis
 - `atac_analysis`: scripts to assess Amulet performance on barcode singlets
-- `atac_analysis`: scripts to assess Amulet performance on barcode singlets
+- `plotScripts`: scripts used for plotting
+- `heterogeneity`: scripts to assess heterogeneity across samples.
+- 'otherBarcodingMethods': scripts to adapt data from other barcoding technologies to have singlets identified with singletCode.
+- 'cellTypeAnnotation': scripts to annotate cell type.
+- 'cellCount': scripts to process data according to the original publications for the purpose of comparing cell numbers at different stages of processing, including singlet recovery.
+  
 # Data Structure
 
 The data is deposited at this link. It has the following stucture. All the `corrected_singlet_pairs` files indicate which singlets
