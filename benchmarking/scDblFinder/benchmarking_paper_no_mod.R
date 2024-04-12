@@ -9,7 +9,7 @@ library(stringr)
 require(parallel)
 
 set.seed(2022)
-source("doublet_cell_utils.R")
+source("scDblFinder_utils.R")
 ################################
 #                              #
 #       Input Parameters       #
@@ -18,7 +18,7 @@ source("doublet_cell_utils.R")
 
 
 root_dir <-"/projects/p31666/zzhang/doublet-bchmk/data/fatemap_data"
-METHOD_ID<-"doublet_cells"
+METHOD_ID<-"scDblFinders"
 out_dir<-"/projects/p31666/zzhang/doublet-bchmk/final"
 root_bchmk_dataset<-"/projects/p31666/zzhang/doublet-bchmk/data/bchmk_paper_real_data"
 ################################
@@ -42,8 +42,8 @@ main<-function (root_dir, METHOD_ID, out_dir){
     doublet.seurat <- AddMetaData(doublet.seurat, col.name="label", label)
     sce <- as.SingleCellExperiment(doublet.seurat)
     cur_exp_dbl<-sum(label=="doublet")/length(label)
-    cur_file <- glue("/projects/b1042/GoyalLab/zzhang/doublet_objects_benchmarking_data_no_mod/doublet_cells/{cur_data_id}.rds")
-    cur_out_df<-run_doublet_cell(sce, dbl_exp=cur_exp_dbl, doublet_obj_file=cur_file)
+    cur_file <- glue("/projects/b1042/GoyalLab/zzhang/doublet_objects_benchmarking_data_no_mod/scDblFinders/{cur_data_id}.rds")
+    cur_out_df<-run_scDblFinder(sce, dbl_exp=cur_exp_dbl, doublet_obj_file=cur_file)
     print(glue("INFO: Current benchmark dataset doublet rate is: {cur_exp_dbl}"))
     cur_out_df$dbl_exp <- "NA"
     cur_out_df$dbl_act <- "NA"

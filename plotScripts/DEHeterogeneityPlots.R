@@ -122,7 +122,7 @@ diff_data = diff_data %>% dplyr::rename(dataset = Dataset, sample = Sample)
 
 data_plot = inner_join(diff_data, benchmarking, by = c("sample", "dataset")) %>% mutate(condition = str_replace(condition, "doublet_finder", "DoubletFinder"),
                                                                                         condition = str_replace(condition, "scrublet", "Scrublet"),
-                                                                                        condition = str_replace(condition, "doublet_cell", "scDblFinder"),
+                                                                                        condition = str_replace(condition, "scDblFinder", "scDblFinder"),
                                                                                         condition = as.factor(condition))
 
 ggplot(data_plot, aes(x = fDiff, y = auprc, color = condition, group = condition)) +

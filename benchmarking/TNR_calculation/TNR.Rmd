@@ -10,7 +10,7 @@ library(ggplot2)
 ```{r}
 score_dirs <- c(
   "/projects/b1042/GoyalLab/zzhang/doublet_objects_benchmarking_data/hybrid",
-  "/projects/b1042/GoyalLab/zzhang/doublet_objects_benchmarking_data/doublet_cell",
+  "/projects/b1042/GoyalLab/zzhang/doublet_objects_benchmarking_data/scDblFinder",
   "/projects/b1042/GoyalLab/zzhang/doublet_objects_benchmarking_data/doublet_finder",
   "/projects/b1042/GoyalLab/zzhang/doublet_objects_benchmarking_data/scrublet"
 
@@ -39,7 +39,7 @@ for(cur_score_dir in score_dirs){
       cur_score_df_sorted[["calls_score_based"]][1:num_top] <- "doublet"
       names(cur_score_df_sorted)[names(cur_score_df_sorted) == "label"] <- "ground_truth"
       cur_cal_df <- dplyr::select(cur_score_df_sorted, ground_truth, calls_score_based)
-    }else if(method_id == "doublet_cell"){
+    }else if(method_id == "scDblFinder"){
       cur_score_df <- readRDS(cur_file)
       cur_score_df <- cur_score_df@colData|>as.data.frame()
       cur_score_df_sorted <- cur_score_df[order(cur_score_df[["scDblFinder.score"]], decreasing = T), ]
@@ -93,7 +93,7 @@ ggsave("/projects/p31666/zzhang/doublet-bchmk/final/TNR/TNR_8_benchmarking.svg",
 ```{r}
 score_dirs <- c(
   "/projects/p31666/melzer/ZhangMelzerEtAl/doubletInfo_sum/doublet_finder",
-  "/projects/p31666/melzer/ZhangMelzerEtAl/doubletInfo_sum/doublet_cell",
+  "/projects/p31666/melzer/ZhangMelzerEtAl/doubletInfo_sum/scDblFinder",
   "/projects/p31666/melzer/ZhangMelzerEtAl/doubletInfo_sum/hybrid",
   "/projects/b1042/GoyalLab/zzhang/doublet_objects_sum/scrublet"
 )
@@ -129,7 +129,7 @@ for(cur_score_dir in score_dirs){
       cur_score_df_sorted[["calls_score_based"]][1:num_top] <- "doublet"
       names(cur_score_df_sorted)[names(cur_score_df_sorted) == "label"] <- "ground_truth"
       cur_cal_df <- dplyr::select(cur_score_df_sorted, ground_truth, calls_score_based)
-    }else if(method_id == "doublet_cell"){
+    }else if(method_id == "scDblFinder"){
       cur_score_df <- read.csv(cur_file)
       cur_score_df_sorted <- cur_score_df[order(cur_score_df[["scDblFinder.score"]], decreasing = T), ]
       num_top <- 0.08 * nrow(cur_score_df_sorted)

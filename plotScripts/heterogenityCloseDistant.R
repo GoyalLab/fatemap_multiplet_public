@@ -26,12 +26,12 @@ plot1 = ggplot(data=HetAllLong, aes(x=condition, y=AUPRC)) +
         legend.position="none") +
   facet_wrap(~method)
 
-HetAllDoubletCell = HetAll %>% filter(method == "doublet_cell")  
+HetAllscDblFinder = HetAll %>% filter(method == "scDblFinder")  
 HetAllDoubletFinder = HetAll %>% filter(method == "doublet_finder")  
 
 wilcox.test(HetAll$adj_test, HetAll$all_cluster, paired = TRUE)
 
-wilcox.test(HetAllDoubletCell$adj_test, HetAllDoubletCell$all_cluster, paired = TRUE)
+wilcox.test(HetAllscDblFinder$adj_test, HetAllscDblFinder$all_cluster, paired = TRUE)
 
 wilcox.test(HetAllDoubletFinder$adj_test, HetAllDoubletFinder$all_cluster, paired = TRUE)
 
@@ -55,7 +55,7 @@ plot1 = ggplot(data=HetNonAverage, aes(x=type, y=pr)) +
   facet_wrap(~method)
 
 HetNonAverageSpread = HetNonAverage %>% ungroup() %>% select(pr,pointClassifier,type, method) 
-HetNonAverageSpreadDoublet_cell = HetNonAverageSpread %>% spread(type,pr) %>% filter(method =="doublet_cell")
+HetNonAverageSpreadDoublet_cell = HetNonAverageSpread %>% spread(type,pr) %>% filter(method =="scDblFinder")
 HetNonAverageSpreadDoublet_finder = HetNonAverageSpread %>% spread(type,pr) %>% filter(method =="doublet_finder")
 
 
@@ -63,7 +63,7 @@ wilcox.test(HetNonAverageSpreadDoublet_cell$adj_test, HetNonAverageSpreadDoublet
 wilcox.test(HetNonAverageSpreadDoublet_finder$adj_test, HetNonAverageSpreadDoublet_finder$all_cluster, paired = TRUE)
 
 HetNonAverageSpread = HetNonAverage %>% ungroup() %>% select(roc,pointClassifier,type, method) 
-HetNonAverageSpreadDoublet_cell = HetNonAverageSpread %>% spread(type,roc) %>% filter(method =="doublet_cell")
+HetNonAverageSpreadDoublet_cell = HetNonAverageSpread %>% spread(type,roc) %>% filter(method =="scDblFinder")
 HetNonAverageSpreadDoublet_finder = HetNonAverageSpread %>% spread(type,roc) %>% filter(method =="doublet_finder")
 
 plot1 = ggplot(data=HetNonAverage, aes(x=type, y=roc)) + 
@@ -119,7 +119,7 @@ ggsave(plotROC, file = paste0(plotDirectory, 'individualHeterogenity_ROC.svg'), 
 
 
 HetNonAverageSpread = HetNonAverage %>% ungroup() %>% select(pr,pointClassifier,type, method) 
-HetNonAverageSpreadDoublet_cell = HetNonAverageSpread %>% spread(type,pr) %>% filter(method =="doublet_cell")
+HetNonAverageSpreadDoublet_cell = HetNonAverageSpread %>% spread(type,pr) %>% filter(method =="scDblFinder")
 HetNonAverageSpreadDoublet_finder = HetNonAverageSpread %>% spread(type,pr) %>% filter(method =="doublet_finder")
 
 
@@ -129,7 +129,7 @@ wilcox.test(HetNonAverageSpreadDoublet_finder$adj_test, HetNonAverageSpreadDoubl
 
 
 HetNonAverageSpread = HetNonAverage %>% ungroup() %>% select(roc,pointClassifier,type, method) 
-HetNonAverageSpreadDoublet_cell = HetNonAverageSpread %>% spread(type,roc) %>% filter(method =="doublet_cell")
+HetNonAverageSpreadDoublet_cell = HetNonAverageSpread %>% spread(type,roc) %>% filter(method =="scDblFinder")
 HetNonAverageSpreadDoublet_finder = HetNonAverageSpread %>% spread(type,roc) %>% filter(method =="doublet_finder")
 
 

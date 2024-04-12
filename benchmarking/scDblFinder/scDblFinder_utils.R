@@ -1,5 +1,5 @@
-run_doublet_cell_on_dataset <- function(data_dir, METHOD_ID, dbl_exp, dbl_act, num_to_test=5,
-                                        save_root = "/projects/b1042/GoyalLab/zzhang/doublet_objects/doublet_cell") {
+run_scDblFinder_on_dataset <- function(data_dir, METHOD_ID, dbl_exp, dbl_act, num_to_test=5,
+                                        save_root = "/projects/b1042/GoyalLab/zzhang/doublet_objects/scDblFinder") {
   print(glue("Working on dataset: {data_dir}"))
   dir_10X <- glue("{data_dir}/10X")
   dataset_id <- strsplit(data_dir, "/")[[1]][[length(strsplit(data_dir, "/")[[1]])]]
@@ -44,8 +44,8 @@ run_bchmk_original_paper <- function(cur_bchmk_dataset_mtx, num_to_test){
     cur_exp_dbl<-sum(doublet.seurat[["label"]] == "doublet")/ncol(doublet.seurat)
     print(glue("INFO: Current benchmark dataset doublet rate is: {cur_exp_dbl}"))
     sce <- as.SingleCellExperiment(doublet.seurat)
-    cur_file <- glue("/projects/b1042/GoyalLab/zzhang/doublet_objects_benchmarking_data/doublet_cell/{cur_data_id}.rds")
-    cur_res <- run_doublet_cell(sce, cur_exp_dbl, doublet_obj_file = cur_file)
+    cur_file <- glue("/projects/b1042/GoyalLab/zzhang/doublet_objects_benchmarking_data/scDblFinder/{cur_data_id}.rds")
+    cur_res <- run_scDblFinder(sce, cur_exp_dbl, doublet_obj_file = cur_file)
     df_ls <- rbindlist(list(df_ls, cur_res))
   }
   all_stats <- data.frame(df_ls)
@@ -62,7 +62,7 @@ run_bchmk <- function(cur_sample_dir, dbl_act, data_sample_ID, num_to_test, dbl_
     prefix2 <- tail(strsplit(cur_sample_dir, "/")[[1]], 3) |>
       head(1)
     doublet_object_file <- glue("{save_dir}/{prefix2}___{prefix1}___exp_{dbl_exp}__act_{dbl_act}.rds")
-    cur_res <- run_doublet_cell(sce, dbl_exp, doublet_object_file)
+    cur_res <- run_scDblFinder(sce, dbl_exp, doublet_object_file)
     df_ls <- rbindlist(list(df_ls, cur_res))
 
   }
@@ -71,7 +71,7 @@ run_bchmk <- function(cur_sample_dir, dbl_act, data_sample_ID, num_to_test, dbl_
   all_stats
 }
 
-run_doublet_cell <- function(sce, dbl_exp, doublet_obj_file) {
+run_scDblFinder <- function(sce, dbl_exp, doublet_obj_file) {
 
   # print(glue("INFO: Current dataset doublet rate is {cur_doublet_rate}"))
   sce <- scDblFinder::scDblFinder(sce, dbr = dbl_exp)

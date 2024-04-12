@@ -172,12 +172,12 @@ for(cur_dataset in names(data_list)){
     output<-list(
       "roc"=cur_roc,
       "pr"=cur_pr,
-      "method"="doublet_cell",
+      "method"="scDblFinder",
       "type"=cur_type,
       "dataset_id"=cur_dataset,
       "mean_dist_pc"=distances_cur_obj_pc_mean
     )
-    unique_id <- glue("doublet_cell__{cur_obj_id}")
+    unique_id <- glue("scDblFinder__{cur_obj_id}")
     result_ls[[unique_id]] <- output
     obj_out <- glue("/projects/p31666/zzhang/doublet-bchmk/final/cell_location_comp/objects/{unique_id}.rds")
     saveRDS(sce, obj_out)

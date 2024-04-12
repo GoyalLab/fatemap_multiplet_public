@@ -12,7 +12,7 @@ require(data.table)
 library(stringr)
 require(parallel)
 
-source("doublet_cell_utils.R")
+source("scDblFinder_utils.R")
 options(error=traceback)
 ################################
 #                              #
@@ -23,7 +23,7 @@ options(error=traceback)
 
 root_dir <-"/projects/p31666/zzhang/doublet-bchmk/data/fatemap_data"
 root_bchmk_dataset<-"/projects/p31666/zzhang/doublet-bchmk/data/bchmk_paper_real_data"
-METHOD_ID<-"doublet_cell"
+METHOD_ID<-"scDblFinder"
 out_dir<-"/projects/p31666/zzhang/doublet-bchmk/final"
 n_cores<-8
 num_test <- 1

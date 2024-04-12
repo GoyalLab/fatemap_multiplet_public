@@ -28,26 +28,26 @@ similarityResults <- data.frame(
   lengthToCompare = integer(),
   labelDoublets = integer(),
   doubletFinderDoublets = integer(),
-  doubletCellDoublets = integer(),
+  scDblFinderDoublets = integer(),
   hybridDoublets = integer(),
   cxdsDoublets = integer(),
   bcdsDoublets = integer(),
   scrubletDoublets = integer(),
   minDoubletFinderScore = numeric(),
-  minDoubletCellScore = numeric(),
+  minscDblFinderScore = numeric(),
   minHybridScore = numeric(),
   minCxdsScore = numeric(),
   minBcdsScore = numeric(),
   minScrubletScore = numeric(),
-  similarityScore_doubletFinder_doubletCell = numeric(),
+  similarityScore_doubletFinder_scDblFinder = numeric(),
   similarityScore_doubletFinder_hybrid = numeric(),
   similarityScore_doubletFinder_cxds = numeric(),
   similarityScore_doubletFinder_bcds = numeric(),
   similarityScore_doubletFinder_scrublet = numeric(),
-  similarityScore_doubletCell_hybrid = numeric(),
-  similarityScore_doubletCell_cxds = numeric(),
-  similarityScore_doubletCell_bcds = numeric(),
-  similarityScore_doubletCell_scrublet = numeric(),
+  similarityScore_scDblFinder_hybrid = numeric(),
+  similarityScore_scDblFinder_cxds = numeric(),
+  similarityScore_scDblFinder_bcds = numeric(),
+  similarityScore_scDblFinder_scrublet = numeric(),
   similarityScore_hybrid_cxds = numeric(),
   similarityScore_hybrid_bcds = numeric(),
   similarityScore_hybrid_scrublet = numeric(),
@@ -80,12 +80,12 @@ for (file in files) {
     mutate(doubletFinderCall = tolower(doubletFinderCall))
   
   
-  # DoubletCell
-  doubletCellPath <- file.path(doubletInfoDirectory, "doublet_cell/")
-  doublet_cell <- read.csv(paste0(doubletCellPath, filename), stringsAsFactors = FALSE) %>%
-    rename_with(~ if_else(str_detect(.x, "scDblFinder.score"), "doubletCellScore", .x), .cols = contains("scDblFinder.score")) %>%
-    rename_with(~ if_else(str_detect(.x, "scDblFinder.class"), "doubletCellCall", .x), .cols = contains("scDblFinder.class")) %>%
-    mutate(doubletCellCall = tolower(doubletCellCall))
+  # scDblFinder
+  scDblFinderPath <- file.path(doubletInfoDirectory, "scDblFinder/")
+  scDblFinder <- read.csv(paste0(scDblFinderPath, filename), stringsAsFactors = FALSE) %>%
+    rename_with(~ if_else(str_detect(.x, "scDblFinder.score"), "scDblFinderScore", .x), .cols = contains("scDblFinder.score")) %>%
+    rename_with(~ if_else(str_detect(.x, "scDblFinder.class"), "scDblFinderCall", .x), .cols = contains("scDblFinder.class")) %>%
+    mutate(scDblFinderCall = tolower(scDblFinderCall))
   
   
   # Hybrid, cxds, bcds
@@ -120,22 +120,22 @@ for (file in files) {
       TRUE ~ .x  # Retain the original value if it's neither "true" nor "false"
     )))
   
-  first_join <- inner_join(doublet_finder, doublet_cell, by = c("cellID", "label", "nCount_RNA", "nFeature_RNA"))
+  first_join <- inner_join(doublet_finder, scDblFinder, by = c("cellID", "label", "nCount_RNA", "nFeature_RNA"))
   second_join <- inner_join(first_join, hybrid, by = c("cellID", "label", "nCount_RNA", "nFeature_RNA"))
   toCompare <- inner_join(second_join, scrublet, by = c("cellID"))
   
   # Calculate doublet similarity scores
   toCompare_doublets <- toCompare[toCompare$label == "doublet", ]
   
-  doubletFinder_doubletCell <- getSimilarityScore(toCompare_doublets, "doubletFinderCall", "doubletCellCall")
+  doubletFinder_scDblFinder <- getSimilarityScore(toCompare_doublets, "doubletFinderCall", "scDblFinderCall")
   doubletFinder_hybrid <- getSimilarityScore(toCompare_doublets, "doubletFinderCall", "hybridCall")
   doubletFinder_cxds <- getSimilarityScore(toCompare_doublets, "doubletFinderCall", "cxdsCall")
   doubletFinder_bcds <- getSimilarityScore(toCompare_doublets, "doubletFinderCall", "bcdsCall")
   doubletFinder_scrublet <- getSimilarityScore(toCompare_doublets, "doubletFinderCall", "scrubletCall")
-  doubletCell_hybrid <- getSimilarityScore(toCompare_doublets, "doubletCellCall", "hybridCall")
-  doubletCell_cxds <- getSimilarityScore(toCompare_doublets, "doubletCellCall", "cxdsCall")
-  doubletCell_bcds <- getSimilarityScore(toCompare_doublets, "doubletCellCall", "bcdsCall")
-  doubletCell_scrublet <- getSimilarityScore(toCompare_doublets, "doubletCellCall", "scrubletCall")
+  scDblFinder_hybrid <- getSimilarityScore(toCompare_doublets, "scDblFinderCall", "hybridCall")
+  scDblFinder_cxds <- getSimilarityScore(toCompare_doublets, "scDblFinderCall", "cxdsCall")
+  scDblFinder_bcds <- getSimilarityScore(toCompare_doublets, "scDblFinderCall", "bcdsCall")
+  scDblFinder_scrublet <- getSimilarityScore(toCompare_doublets, "scDblFinderCall", "scrubletCall")
   hybrid_cxds <- getSimilarityScore(toCompare_doublets, "hybridCall", "cxdsCall")
   hybrid_bcds <- getSimilarityScore(toCompare_doublets, "hybridCall", "bcdsCall")
   hybrid_scrublet <- getSimilarityScore(toCompare_doublets, "hybridCall", "scrubletCall")
@@ -145,7 +145,7 @@ for (file in files) {
   
   # Calculate minimum scores for doublet calls
   minDoubletFinderScore <- min(doublet_finder$doubletFinderScore[doublet_finder$doubletFinderCall == "doublet"], na.rm = TRUE)
-  minDoubletCellScore <- min(doublet_cell$doubletCellScore[doublet_cell$doubletCellCall == "doublet"], na.rm = TRUE)
+  minscDblFinderScore <- min(scDblFinder$scDblFinderScore[scDblFinder$scDblFinderCall == "doublet"], na.rm = TRUE)
   minHybridScore <- min(hybrid$hybridScore[hybrid$hybridCall == "doublet"], na.rm = TRUE)
   minCxdsScore <- min(hybrid$cxdsScore[hybrid$cxdsCall == "doublet"], na.rm = TRUE)
   minBcdsScore <- min(hybrid$bcdsScore[hybrid$bcdsCall == "doublet"], na.rm = TRUE)
@@ -154,7 +154,7 @@ for (file in files) {
   # Count doublets
   labelDoublets <- sum(toCompare$label == "doublet", na.rm = TRUE)
   doubletFinderDoublets <- sum(toCompare$doubletFinderCall == "doublet", na.rm = TRUE)
-  doubletCellDoublets <- sum(toCompare$doubletCellCall == "doublet", na.rm = TRUE)
+  scDblFinderDoublets <- sum(toCompare$scDblFinderCall == "doublet", na.rm = TRUE)
   hybridDoublets <- sum(hybrid$hybridCall == "doublet", na.rm = TRUE)
   cxdsDoublets <- sum(hybrid$cxdsCall == "doublet", na.rm = TRUE)
   bcdsDoublets <- sum(hybrid$bcdsCall == "doublet", na.rm = TRUE)
@@ -178,26 +178,26 @@ for (file in files) {
     lengthToCompare = nrow(toCompare),
     labelDoublets = sum(toCompare$label == "doublet", na.rm = TRUE),
     doubletFinderDoublets = doubletFinderDoublets,
-    doubletCellDoublets = doubletCellDoublets,
+    scDblFinderDoublets = scDblFinderDoublets,
     hybridDoublets = hybridDoublets,
     cxdsDoublets = cxdsDoublets,
     bcdsDoublets = bcdsDoublets,
     scrubletDoublets = scrubletDoublets,
     minDoubletFinderScore = minDoubletFinderScore,
-    minDoubletCellScore = minDoubletCellScore,
+    minscDblFinderScore = minscDblFinderScore,
     minHybridScore = minHybridScore,
     minCxdsScore = minCxdsScore,
     minBcdsScore = minBcdsScore,
     minScrubletScore = minScrubletScore,
-    similarityScore_doubletFinder_doubletCell = doubletFinder_doubletCell,
+    similarityScore_doubletFinder_scDblFinder = doubletFinder_scDblFinder,
     similarityScore_doubletFinder_hybrid = doubletFinder_hybrid,
     similarityScore_doubletFinder_cxds = doubletFinder_cxds,
     similarityScore_doubletFinder_bcds = doubletFinder_bcds,
     similarityScore_doubletFinder_scrublet = doubletFinder_scrublet,
-    similarityScore_doubletCell_hybrid = doubletCell_hybrid,
-    similarityScore_doubletCell_cxds = doubletCell_cxds,
-    similarityScore_doubletCell_bcds = doubletCell_bcds,
-    similarityScore_doubletCell_scrublet = doubletCell_scrublet,
+    similarityScore_scDblFinder_hybrid = scDblFinder_hybrid,
+    similarityScore_scDblFinder_cxds = scDblFinder_cxds,
+    similarityScore_scDblFinder_bcds = scDblFinder_bcds,
+    similarityScore_scDblFinder_scrublet = scDblFinder_scrublet,
     similarityScore_hybrid_cxds = hybrid_cxds,
     similarityScore_hybrid_bcds = hybrid_bcds,
     similarityScore_hybrid_scrublet = hybrid_scrublet,
@@ -235,7 +235,7 @@ results = results %>% #updated 20240321
   !(
     (dataset == "SPLINTR" & sample %in% c("inVitro_KRAS", "retransplant")) |
       (dataset == "TREX" & sample == "brain1") |
-      (dataset == "LARRY" & sample %in% c("LSK1_d4_nBC", "LSK1_d4_R_4")) |
+      (dataset == "LARRY" & sample %in% c("d4_nBC", "d4_R_4")) |
       (dataset == "smartseq3" & sample %in% c("sample1"))
   ))
 
@@ -325,8 +325,8 @@ matrix <- as.matrix(matrix)
 
 long_matrix = melt(matrix)
 
-levels(long_matrix$Var1)[levels(long_matrix$Var1) == "doubletCell"] <- "scDblFinder"
-levels(long_matrix$Var2)[levels(long_matrix$Var2) == "doubletCell"] <- "scDblFinder"
+levels(long_matrix$Var1)[levels(long_matrix$Var1) == "scDblFinder"] <- "scDblFinder"
+levels(long_matrix$Var2)[levels(long_matrix$Var2) == "scDblFinder"] <- "scDblFinder"
 levels(long_matrix$Var1)[levels(long_matrix$Var1) == "doubletFinder"] <- "DoubletFinder"
 levels(long_matrix$Var2)[levels(long_matrix$Var2) == "doubletFinder"] <- "DoubletFinder"
 levels(long_matrix$Var1)[levels(long_matrix$Var1) == "scrublet"] <- "Scrublet"
@@ -374,8 +374,8 @@ for (file_path in csv_files) {
   matrix <- as.matrix(matrix)
   long_matrix = melt(matrix)
   
-  levels(long_matrix$Var1)[levels(long_matrix$Var1) == "doubletCell"] <- "scDblFinder"
-  levels(long_matrix$Var2)[levels(long_matrix$Var2) == "doubletCell"] <- "scDblFinder"
+  levels(long_matrix$Var1)[levels(long_matrix$Var1) == "scDblFinder"] <- "scDblFinder"
+  levels(long_matrix$Var2)[levels(long_matrix$Var2) == "scDblFinder"] <- "scDblFinder"
   levels(long_matrix$Var1)[levels(long_matrix$Var1) == "doubletFinder"] <- "DoubletFinder"
   levels(long_matrix$Var2)[levels(long_matrix$Var2) == "doubletFinder"] <- "DoubletFinder"
   levels(long_matrix$Var1)[levels(long_matrix$Var1) == "scrublet"] <- "Scrublet"

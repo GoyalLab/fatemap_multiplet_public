@@ -14,5 +14,5 @@ module purge
 module load geos/3.8.1
 module load R/4.1.1
 
-cd /projects/p31666/zzhang/doublet-bchmk/repo/benchmarking/doublet_cells
+cd /projects/p31666/zzhang/doublet-bchmk/repo/benchmarking/scDblFinders
 Rscript benchmarking_paper.R

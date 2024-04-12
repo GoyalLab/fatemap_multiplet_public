@@ -46,10 +46,10 @@ for (dbl_act in dblActs) {
 }
 
 ##########################################################################################################################
-# doublet_cell
+# scDblFinder
 ##########################################################################################################################
 
-detectionMethod = "doublet_cell"
+detectionMethod = "scDblFinder"
 dblMethodPath <- file.path(doubletObjectsDirectory, detectionMethod)
 # Get the list of dbl_act directories
 dblActs <- list.dirs(dblMethodPath, full.names = FALSE, recursive = FALSE)
@@ -121,7 +121,7 @@ for (dbl_act in dblActs) {
 # scrublet (do not need because already .csv files)
 ##########################################################################################################################
 
-rds = readRDS("/projects/b1042/GoyalLab/zzhang/doublet_objects/doublet_cell/act__0.1/Biorxiv___1_DMSO_A___exp_0.1__act_0.1.rds")
+rds = readRDS("/projects/b1042/GoyalLab/zzhang/doublet_objects/scDblFinder/act__0.1/Biorxiv___1_DMSO_A___exp_0.1__act_0.1.rds")
 nrow(colData(rds))
 
 file = "/projects/b1042/GoyalLab/zzhang/doublet_objects/doublet_finder/act__0.1/Biorxiv___1_DMSO_A___exp_0.1__act_0.1.rds"
@@ -130,7 +130,7 @@ file = "/projects/b1042/GoyalLab/zzhang/doublet_objects/doublet_finder/act__0.1/
 doubletFinder = readRDS("/Volumes/fsmresfiles/Basic_Sciences/CDB/GoyalLab/People/MadelineMelzer/ZhangMelzerEtAl/data/doublet_objects/doublet_finder/act__0.1/Biorxiv___1_DMSO_A___exp_0.1__act_0.1.rds")
 seuratObject <- doubletFinder
 
-detectionMethod = "doublet_cell"
+detectionMethod = "scDblFinder"
 file = glue("/Volumes/fsmresfiles/Basic_Sciences/CDB/GoyalLab/People/MadelineMelzer/ZhangMelzerEtAl/data/doublet_objects/{detectionMethod}/act__0.1/Biorxiv___1_DMSO_A___exp_0.1__act_0.1.rds")
 seuratObject = readRDS(file)
 filename <- basename(file)

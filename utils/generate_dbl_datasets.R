@@ -164,7 +164,7 @@ for(cur_10X_dir in all_directories){
   forty_data_file <- glue("{cur_dataset_data_dir}/forty.rds")
   saveRDS(forty_seu, file = forty_data_file)
 
-  doublet_cells <- forty_seu@meta.data|>
+  scDblFinders <- forty_seu@meta.data|>
     dplyr::filter(label == "doublet")|>
     rownames()
   singlet_cells <- forty_seu@meta.data|>
@@ -172,7 +172,7 @@ for(cur_10X_dir in all_directories){
     rownames()
   num_doublets <- round(length(singlet_cells) * 0.2 / (1 - 0.2))
   #randomly sample without replacement
-  doublet_to_keep <- sample(doublet_cells, num_doublets)
+  doublet_to_keep <- sample(scDblFinders, num_doublets)
   all_cells_twenty <- c(singlet_cells, doublet_to_keep)
   twenty_seu <- forty_seu[,all_cells_twenty]
 
@@ -193,7 +193,7 @@ for(cur_10X_dir in all_directories){
 
   num_doublets <- round(length(singlet_cells) * 0.1 / (1 - 0.1))
   #randomly sample without replacement
-  doublet_to_keep <- sample(doublet_cells, num_doublets)
+  doublet_to_keep <- sample(scDblFinders, num_doublets)
   all_cells_ten <- c(singlet_cells, doublet_to_keep)
   ten_seu <- forty_seu[,all_cells_ten]
 

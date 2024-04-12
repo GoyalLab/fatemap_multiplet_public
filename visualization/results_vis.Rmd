@@ -15,7 +15,7 @@ library(plyr); library(dplyr)
 res <- read.table("/projects/p31666/zzhang/doublet-bchmk/final/cell_location_comp/all.tsv", sep = "\t", header = T)
 output_dir <- "/projects/p31666/zzhang/doublet-bchmk/final/cell_location_comp"
 res <- dplyr::filter(res, type != "three_cluster")
-t <- dplyr::filter(res, method == "doublet_cell", type == "adj_test", dataset_id == "LARRY")
+t <- dplyr::filter(res, method == "scDblFinder", type == "adj_test", dataset_id == "LARRY")
 # 6 lines
 
 x_means <- res %>%
@@ -88,7 +88,7 @@ ggsave(p, filename = out_file, height=6, width=8)
 
 # merge separate output files
 ```{r}
-methods <- c("doublet_finder", "scrublet", "doublet_cell", "hybrid")
+methods <- c("doublet_finder", "scrublet", "scDblFinder", "hybrid")
 
 for(cur_method in methods){
   cur_all_out_dir<-glue("/projects/p31666/zzhang/doublet-bchmk/final_sum/{cur_method}/stats")

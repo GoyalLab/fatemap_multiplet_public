@@ -5,7 +5,7 @@ library(data.table)
 
 ```{r}
 dbl_pct <- c(0.05, 0.08, 0.1, 0.15, 0.2, 0.25)
-methods <- c("doublet_finder", "doublet_cell", "hybrid", "scrublet")
+methods <- c("doublet_finder", "scDblFinder", "hybrid", "scrublet")
 
 paths <- lapply(methods, function(x){
   glue("/projects/p31666/zzhang/doublet-bchmk/final/{x}/stats/all_detection_rates_{dbl_pct}.tsv")

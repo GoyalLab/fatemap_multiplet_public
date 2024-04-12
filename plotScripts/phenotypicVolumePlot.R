@@ -132,7 +132,7 @@ data_summarized = data %>%
 
 data_plot = inner_join(data_summarized, benchmarking, by = c("sample", "dataset")) %>% mutate(condition = str_replace(condition, "doublet_finder", "DoubletFinder"),
                                                                                               condition = str_replace(condition, "scrublet", "Scrublet"),
-                                                                                              condition = str_replace(condition, "doublet_cell", "scDblFinder"),
+                                                                                              condition = str_replace(condition, "scDblFinder", "scDblFinder"),
                                                                                               condition = as.factor(condition))
 
 data_plot = data_plot %>% 

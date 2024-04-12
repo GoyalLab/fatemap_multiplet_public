@@ -13,5 +13,5 @@
 module purge all
 module load R/4.2.3
 
-cd /projects/p31666/zzhang/doublet-bchmk/repo/benchmarking/doublet_cells
+cd /projects/p31666/zzhang/doublet-bchmk/repo/benchmarking/scDblFinders
 Rscript 8pct_main.R

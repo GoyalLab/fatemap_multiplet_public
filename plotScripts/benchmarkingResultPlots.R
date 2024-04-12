@@ -228,7 +228,7 @@ barcodedRename = c("FM01" = "Goyal et al. 1",
 barcoded_formatted <- barcoded %>%
   mutate(condition = str_replace(condition, "doublet_finder", "DoubletFinder"),
          condition = str_replace(condition, "scrublet", "Scrublet"),
-         condition = str_replace(condition, "doublet_cell", "scDblFinder"),
+         condition = str_replace(condition, "scDblFinder", "scDblFinder"),
          condition = as.factor(condition)) %>%
   filter(dbl_act == 0.08) %>%
   group_by(dataset, condition, sample) %>%
@@ -363,7 +363,7 @@ barcoded = read.csv("/Volumes/fsmresfiles/Basic_Sciences/CDB/GoyalLab/People/Mad
 barcoded = barcoded %>% filter(dbl_act == 0.08)  %>%
   mutate(condition = str_replace(condition, "doublet_finder", "DoubletFinder"),
          condition = str_replace(condition, "scrublet", "Scrublet"),
-         condition = str_replace(condition, "doublet_cell", "scDblFinder"),
+         condition = str_replace(condition, "scDblFinder", "scDblFinder"),
          condition = as.factor(condition))
 #write.csv(barcoded, glue("{dataDirectory}/barcoded_0.08_average.csv"))
 
@@ -381,7 +381,7 @@ nonBarcoded_8 = read.csv(glue("{dataDirectory}/nonBarcoded_8.csv"))
 nonBarcoded_8 = nonBarcoded_8 %>% filter(dataset %in% nonBarcodedDatasets) %>%
   mutate(condition = str_replace(condition, "doublet_finder", "DoubletFinder"),
          condition = str_replace(condition, "scrublet", "Scrublet"),
-         condition = str_replace(condition, "doublet_cell", "scDblFinder"),
+         condition = str_replace(condition, "scDblFinder", "scDblFinder"),
          condition = as.factor(condition))
 write.csv(nonBarcoded_8, glue("{dataDirectory}/nonBarcoded_0.08_filtered.csv"))
 
@@ -391,7 +391,7 @@ nonBarcoded_noSubsampling = read.csv(glue("{dataDirectory}/nonBarcoded_noSubsamp
 nonBarcoded_noSubsampling = nonBarcoded_noSubsampling %>% filter(dataset %in% nonBarcodedDatasets) %>%
   mutate(condition = str_replace(condition, "doublet_finder", "DoubletFinder"),
          condition = str_replace(condition, "scrublet", "Scrublet"),
-         condition = str_replace(condition, "doublet_cell", "scDblFinder"),
+         condition = str_replace(condition, "scDblFinder", "scDblFinder"),
          condition = as.factor(condition))
 write.csv(nonBarcoded_noSubsampling, glue("{dataDirectory}/nonBarcoded_noSubsampling_filtered.csv"))
 
@@ -560,7 +560,7 @@ tnrData_nonBarcoded_filtered = tnrData_nonBarcoded %>%
   )) %>%
   mutate(condition = str_replace(condition, "doublet_finder", "DoubletFinder"),
          condition = str_replace(condition, "scrublet", "Scrublet"),
-         condition = str_replace(condition, "doublet_cell", "scDblFinder"),
+         condition = str_replace(condition, "scDblFinder", "scDblFinder"),
          condition = as.factor(condition))
 
 
@@ -820,13 +820,13 @@ tnr_formatted = tnrData %>%
       (dataset == "SPLINTR" & sample %in% c("inVitro_KRAS", "retransplant")) |
         (dataset == "TREX" & sample == "brain1") |
         (dataset == "smartseq3" & sample %in% c("sample1", "reads_brain1", "reads_brain2")) |
-        (dataset == "LARRY" & sample %in% c("LSK1_d4_nBC", "LSK1_d4_R_4"))
+        (dataset == "LARRY" & sample %in% c("d4_nBC", "d4_R_4"))
     )
   ) %>%
   dplyr::rename(condition = method) %>%
   mutate(condition = str_replace(condition, "doublet_finder", "DoubletFinder"),
          condition = str_replace(condition, "scrublet", "Scrublet"),
-         condition = str_replace(condition, "doublet_cell", "scDblFinder"),
+         condition = str_replace(condition, "scDblFinder", "scDblFinder"),
          condition = as.factor(condition))
 
 ### plotting
@@ -946,7 +946,7 @@ barcoded = filtered_final #too lazy to rename from above (plotting the averaged 
 barcoded_formatted <- barcoded %>%
   mutate(condition = str_replace(condition, "doublet_finder", "DoubletFinder"),
          condition = str_replace(condition, "scrublet", "Scrublet"),
-         condition = str_replace(condition, "doublet_cell", "scDblFinder"),
+         condition = str_replace(condition, "scDblFinder", "scDblFinder"),
          condition = as.factor(condition)) %>%
   filter(dbl_act == 0.08) %>%
   group_by(dataset, condition, sample) %>%
@@ -1066,7 +1066,7 @@ tnr_formatted = tnrData %>%
   dplyr::rename(condition = method) %>%
   mutate(condition = str_replace(condition, "doublet_finder", "DoubletFinder"),
          condition = str_replace(condition, "scrublet", "Scrublet"),
-         condition = str_replace(condition, "doublet_cell", "scDblFinder"),
+         condition = str_replace(condition, "scDblFinder", "scDblFinder"),
          condition = as.factor(condition))
 
 ### plotting
@@ -1348,7 +1348,7 @@ write_csv(allBenchmarking_final, )
 benchmarkingData_formatted <- benchmarkingData %>%
   mutate(condition = str_replace(condition, "doublet_finder", "DoubletFinder"),
          condition = str_replace(condition, "scrublet", "Scrublet"),
-         condition = str_replace(condition, "doublet_cell", "scDblFinder"),
+         condition = str_replace(condition, "scDblFinder", "scDblFinder"),
          condition = as.factor(condition),
          dataset = str_replace(dataset, "non", "non_cancer")) %>%
   group_by(dataset, condition, sample) %>%
@@ -1399,7 +1399,7 @@ benchmarkingData
 benchmarkingData_formatted <- benchmarkingData %>%
   mutate(condition = str_replace(condition, "doublet_finder", "DoubletFinder"),
          condition = str_replace(condition, "scrublet", "Scrublet"),
-         condition = str_replace(condition, "doublet_cell", "scDblFinder"),
+         condition = str_replace(condition, "scDblFinder", "scDblFinder"),
          condition = as.factor(condition),
          dataset = str_replace(dataset, "non", "non_cancer")) %>%
   group_by(dataset, condition, sample) %>%
@@ -1568,7 +1568,7 @@ benchmarkingData
 benchmarkingData_formatted <- benchmarkingData %>%
   mutate(condition = str_replace(condition, "doublet_finder", "DoubletFinder"),
          condition = str_replace(condition, "scrublet", "Scrublet"),
-         condition = str_replace(condition, "doublet_cell", "scDblFinder"),
+         condition = str_replace(condition, "scDblFinder", "scDblFinder"),
          condition = as.factor(condition),
          dataset = str_replace(dataset, "non", "non_cancer")) %>%
   group_by(dataset, condition, sample) %>%
@@ -1711,7 +1711,7 @@ ggsave(plot, file = paste0(plotDirectory, 'benchmarkingResults_allDatasets_AUROC
 benchmarkingData_formatted <- benchmarkingData %>%
   mutate(condition = str_replace(condition, "doublet_finder", "DoubletFinder"),
          condition = str_replace(condition, "scrublet", "Scrublet"),
-         condition = str_replace(condition, "doublet_cell", "scDblFinder"),
+         condition = str_replace(condition, "scDblFinder", "scDblFinder"),
          condition = as.factor(condition),
          dataset = str_replace(dataset, "non", "non_cancer")) %>%
   mutate(isBarcoded = case_when(

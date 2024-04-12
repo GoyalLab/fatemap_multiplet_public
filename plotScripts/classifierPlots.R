@@ -184,7 +184,7 @@ data_formatted <- allData %>%
          condition = str_replace(condition, "FM01_params", "FM01 optimized parameters"),
          condition = str_replace(condition, "doublet_finder", "DoubletFinder"),
          condition = str_replace(condition, "scrublet", "Scrublet"),
-         condition = str_replace(condition, "doublet_cell", "scDblFinder"))
+         condition = str_replace(condition, "scDblFinder", "scDblFinder"))
 
 data_plot = data_formatted %>% 
   filter(dataset %in% barcoded) %>%
@@ -301,7 +301,7 @@ data_formatted <- allData %>%
          condition = str_replace(condition, ".*shuffled.*", "shuffled"),
          condition = str_replace(condition, "doublet_finder", "otherMethods"),
          condition = str_replace(condition, "scrublet", "otherMethods"),
-         condition = str_replace(condition, "doublet_cell", "otherMethods"),
+         condition = str_replace(condition, "scDblFinder", "otherMethods"),
          condition = str_replace(condition, "hybrid", "otherMethods"),
          condition = if_else(condition == as.character(dataset), "classifier", condition))
 
@@ -438,7 +438,7 @@ data_formatted <- data %>%
          condition = str_replace(condition, "FM01_params", "FM01 optimized parameters"),
          condition = str_replace(condition, "doublet_finder", "DoubletFinder"),
          condition = str_replace(condition, "scrublet", "Scrublet"),
-         condition = str_replace(condition, "doublet_cell", "scDblFinder"))
+         condition = str_replace(condition, "scDblFinder", "scDblFinder"))
 
 ### AUPRC
 data_plot = data_formatted %>% 
@@ -539,7 +539,7 @@ data_formatted <- data %>%
          condition = str_replace(condition, ".*shuffled.*", "shuffled"),
          condition = str_replace(condition, "doublet_finder", "DoubletFinder"),
          condition = str_replace(condition, "scrublet", "Scrublet"),
-         condition = str_replace(condition, "doublet_cell", "scDblFinder"),
+         condition = str_replace(condition, "scDblFinder", "scDblFinder"),
          condition = str_replace(condition, "sample1", "classifier"),
          condition = str_replace(condition, "sample2", "classifier"))
 
@@ -571,7 +571,7 @@ data_formatted <- data %>%
          condition = str_replace(condition, ".*shuffled.*", "shuffled"),
          condition = str_replace(condition, "doublet_finder", "otherMethods"),
          condition = str_replace(condition, "scrublet", "otherMethods"),
-         condition = str_replace(condition, "doublet_cell", "otherMethods"),
+         condition = str_replace(condition, "scDblFinder", "otherMethods"),
          condition = str_replace(condition, "hybrid", "otherMethods"),
          condition = str_replace(condition, "sample1", "classifier"),
          condition = str_replace(condition, "sample2", "classifier"))
@@ -660,7 +660,7 @@ data_formatted <- data_withBoth %>%
          condition = str_replace(condition, ".*shuffled.*", "shuffled"),
          condition = str_replace(condition, "doublet_finder", "DoubletFinder"),
          condition = str_replace(condition, "scrublet", "Scrublet"),
-         condition = str_replace(condition, "doublet_cell", "scDblFinder"),
+         condition = str_replace(condition, "scDblFinder", "scDblFinder"),
          dataset = str_replace(dataset, "s1s2", "sample1 and sample2")) %>%
   select(-"best_params")
 
@@ -704,7 +704,7 @@ data_formatted <- allData %>%
          condition = str_replace(condition, "FM01_params", "FM01 optimized parameters"),
          condition = str_replace(condition, "doublet_finder", "otherMethods"),
          condition = str_replace(condition, "scrublet", "otherMethods"),
-         condition = str_replace(condition, "doublet_cell", "otherMethods"),
+         condition = str_replace(condition, "scDblFinder", "otherMethods"),
          condition = str_replace(condition, "hybrid", "otherMethods"))
 
 ### AUPRC

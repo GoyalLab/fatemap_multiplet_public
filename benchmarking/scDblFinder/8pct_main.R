@@ -12,7 +12,7 @@ require(data.table)
 library(stringr)
 require(parallel)
 
-source("doublet_cell_utils.R")
+source("scDblFinder_utils.R")
 options(error=traceback)
 ################################
 #                              #
@@ -23,9 +23,9 @@ options(error=traceback)
 
 root_dir <-"/projects/p31666/zzhang/doublet-bchmk/data/fatemap_data"
 root_bchmk_dataset<-"/projects/p31666/zzhang/doublet-bchmk/data/bchmk_paper_real_data"
-METHOD_ID<-"doublet_cell"
+METHOD_ID<-"scDblFinder"
 out_dir<-"/projects/p31666/zzhang/doublet-bchmk/final_sum"
-save_root<-"/projects/b1042/GoyalLab/zzhang/doublet_objects_sum/doublet_cell"
+save_root<-"/projects/b1042/GoyalLab/zzhang/doublet_objects_sum/scDblFinder"
 doublet_rates_to_test<-c(0.05, 0.08, 0.1, 0.15, 0.2, 0.25)
 num_test <- 1
 ACT_DBL <- 0.08
@@ -45,7 +45,7 @@ main<-function (root_dir, METHOD_ID, out_dir, n_cores){
   for(expected_doublet_rate in doublet_rates_to_test){
     for(cur_dataset_dir in all_datasets_dirs){
       print(glue("INFO: Currently testing expected doublet rate:{expected_doublet_rate}, actual doublet rate:{ACT_DBL}"))
-      cur_out_df<-run_doublet_cell_on_dataset(cur_dataset_dir, METHOD_ID, num_to_test = num_test,
+      cur_out_df<-run_scDblFinder_on_dataset(cur_dataset_dir, METHOD_ID, num_to_test = num_test,
                                               dbl_exp = expected_doublet_rate, dbl_act = ACT_DBL, save_root = save_root)
 
       cur_out_df$dbl_exp <- expected_doublet_rate

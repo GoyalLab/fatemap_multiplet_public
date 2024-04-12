@@ -66,7 +66,7 @@ benchmarkingData_formatted <- benchmarkingData %>%
   #filter(dataset != "smartseq3_umis") %>%
   mutate(condition = str_replace(condition, "doublet_finder", "DoubletFinder"),
          condition = str_replace(condition, "scrublet", "Scrublet"),
-         condition = str_replace(condition, "doublet_cell", "scDblFinder"),
+         condition = str_replace(condition, "scDblFinder", "scDblFinder"),
          condition = as.factor(condition)) %>%
   filter(dbl_act == 0.08) #%>%
   # group_by(dataset, condition, sample) %>%

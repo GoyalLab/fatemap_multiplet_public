@@ -212,19 +212,19 @@ write.table(barcodes, file = gzfile("barcodes.tsv.gz"), sep = "\t", row.names = 
 
 
 dataset = "LARRY"
-sample = "LSK2_d2_3"
+sample = "LSK_d2_3"
 larry = read_csv("/Users/mem3579/Library/CloudStorage/GoogleDrive-madelinemelzer22@gmail.com/.shortcut-targets-by-id/1-D5WmOkOyy8I-wVx8VYZ-NDotfIYludl/ZhangMelzerEtAl/data/LARRY/LARRY_Barcodes.csv")
 
-larry_filtered = larry %>% filter(sample == "LSK2_d2_3")
+larry_filtered = larry %>% filter(sample == "LSK_d2_3")
 
 length(unique(larry_filtered$cellID))
 
 
 data_dir <- paste0("/Volumes/fsmresfiles/Basic_Sciences/CDB/GoyalLab/People/MadelineMelzer/ZhangMelzerEtAl/data/charles/datasets/zz_all/", dataset, "/10X/", sample, "/")
-data_dir <- paste0("/Volumes/fsmresfiles/Basic_Sciences/CDB/GoyalLab/People/MadelineMelzer/ZhangMelzerEtAl/data/charles/datasets/zz_all/LARRY/10X/LSK2_d2_3/corrected_singlet_pairs.csv")
+data_dir <- paste0("/Volumes/fsmresfiles/Basic_Sciences/CDB/GoyalLab/People/MadelineMelzer/ZhangMelzerEtAl/data/charles/datasets/zz_all/LARRY/10X/LSK_d2_3/corrected_singlet_pairs.csv")
 
 singlets_pair_for_doublet_simulation_file<-list.files(data_dir, pattern="corrected_singlet_pairs.csv")
-singlet_pair_df<-read.csv("/Volumes/fsmresfiles/Basic_Sciences/CDB/GoyalLab/People/MadelineMelzer/ZhangMelzerEtAl/data/charles/datasets/zz_all/LARRY/10X/LSK2_d2_3/corrected_singlet_pairs.csv")
+singlet_pair_df<-read.csv("/Volumes/fsmresfiles/Basic_Sciences/CDB/GoyalLab/People/MadelineMelzer/ZhangMelzerEtAl/data/charles/datasets/zz_all/LARRY/10X/LSK_d2_3/corrected_singlet_pairs.csv")
 
 
 # Extract the sequences or identifiers from columns 1 and 2
