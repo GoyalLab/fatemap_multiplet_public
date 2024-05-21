@@ -1,0 +1,140 @@
+```{r}
+library(ggplot2)
+library(glue)
+library(tidyverse)
+library(data.table)
+```
+
+
+```{r}
+cpdb_root <- "/projects/p31666/zzhang/doublet-bchmk/data/cpdb_stats/"
+
+```
+
+```{r}
+all_out_dir <- list.dirs(cpdb_root, recursive = F)
+
+df_pivot_list <- list()
+
+for(cur_out_dir in all_out_dir){
+  cur_out_files <- list.files(cur_out_dir, full.names = T, pattern = "pvalues")
+  cur_base <- basename(cur_out_dir)
+  cur_dataset_id <- strsplit(cur_base, "___")[[1]][1]
+  cur_contamination <- strsplit(cur_base, "___")[[1]][2]
+  cur_out_table <- read.table(cur_out_files, sep = "\t", header = T)
+  df_pivoted <- cur_out_table %>%
+    pivot_longer(
+      cols = starts_with("X"),
+      names_to = "interacting_parties",
+      values_to = "p_val"
+    )
+  df_pivoted[["interaction_parties_ID"]] <- glue("{df_pivoted$id_cp_interaction }__{df_pivoted$interacting_parties}")
+  df_pivoted <- dplyr::filter(df_pivoted, p_val < 0.05)
+  df_pivoted[["dataset_id"]] <- cur_dataset_id
+  df_pivoted[["dbl_pct"]] <- cur_contamination
+  df_pivoted <- dplyr::select(df_pivoted, interaction_parties_ID, dataset_id, dbl_pct)
+  
+  df_pivot_list[[cur_out_dir]] <- df_pivoted
+}
+
+all_data <- rbindlist(df_pivot_list)
+
+plot_df <- list()
+for(cur_dataset in all_data$dataset_id|>unique()){
+  
+  cur_dataset_data <- dplyr::filter(all_data, dataset_id == cur_dataset)
+  # control
+  cur_control_data <- dplyr::filter(cur_dataset_data, dbl_pct == "control")
+  control_cc <- cur_control_data$interaction_parties_ID
+  
+  # ten
+  cur_ten_data <- dplyr::filter(cur_dataset_data, dbl_pct == "ten")
+  ten_cc <- cur_ten_data$interaction_parties_ID
+  
+  # twenty
+  cur_twenty_data <- dplyr::filter(cur_dataset_data, dbl_pct == "twenty")
+  twenty_cc <- cur_twenty_data$interaction_parties_ID
+  
+  # forty
+  cur_forty_data <- dplyr::filter(cur_dataset_data, dbl_pct == "forty")
+  forty_cc <- cur_forty_data$interaction_parties_ID
+  
+  # for ten dbl 
+  # True Positives: Elements in both
+  TP <- length(intersect(control_cc, ten_cc))
+
+  # False Positives: Elements in predictions but not in ground truth
+  FP <- length(setdiff(ten_cc, control_cc))  
+  FN <- length(setdiff(control_cc, ten_cc)) 
+  precision <- TP / (TP + FP)  # Precision: TP out of all positive predictions
+  recall <- TP / (TP + FN )  # recall: TP out of all elements
+  cur_ten_out <- list(
+    "dbl_pct" = "10%",
+    "dataset" = cur_dataset,
+    "precision" = precision,
+    "recall" = recall
+  )
+  plot_df[[glue("{cur_dataset}__ten")]] <- cur_ten_out
+  
+  # for twenty dbl 
+  # True Positives: Elements in both
+  TP <- length(intersect(control_cc, twenty_cc))
+
+  # False Positives: Elements in predictions but not in ground truth
+  FP <- length(setdiff(twenty_cc, control_cc))  
+  FN <- length(setdiff(control_cc, twenty_cc)) 
+  precision <- TP / (TP + FP)  # Precision: TP out of all positive predictions
+  recall <- TP / (TP + FN )  # recall: TP out of all elements
+  cur_twenty_out <- list(
+    "dbl_pct" = "20%",
+    "dataset" = cur_dataset,
+    "precision" = precision,
+    "recall" = recall
+  )
+  plot_df[[glue("{cur_dataset}__twenty")]] <- cur_twenty_out
+  
+  # for forty dbl 
+  # True Positives: Elements in both
+  TP <- length(intersect(control_cc, forty_cc))
+
+  # False Positives: Elements in predictions but not in ground truth
+  FP <- length(setdiff(forty_cc, control_cc))  
+  FN <- length(setdiff(control_cc, forty_cc)) 
+  precision <- TP / (TP + FP)  # Precision: TP out of all positive predictions
+  recall <- TP / (TP + FN )  # recall: TP out of all elements
+  cur_forty_out <- list(
+    "dbl_pct" = "40%",
+    "dataset" = cur_dataset,
+    "precision" = precision,
+    "recall" = recall
+  )
+  plot_df[[glue("{cur_dataset}__forty")]] <- cur_forty_out
+  
+}
+
+plot_df <- data.table::rbindlist(plot_df)|>
+  as.data.frame()
+write.csv(plot_df,
+          "/projects/p31666/zzhang/doublet-bchmk/plots/functional_analysis/cpdb.csv",
+          quote = F,
+          row.names = F)
+
+long_df <- plot_df %>%
+  pivot_longer(cols = c(precision, recall), names_to = "metric", values_to = "value")
+
+# Generate the plot
+p <- ggplot(long_df, aes(x = dataset, y = value, group = dbl_pct, color = dbl_pct)) +
+  geom_line() +
+  facet_wrap(~metric, scales = "free_y") +
+  scale_y_continuous(limits = c(0, 1)) +
+  theme_minimal() +
+  labs(title = "Precision and recall by Dataset",
+       x = "Dataset",
+       y = "Value",
+       color = "Combination") +
+  theme(legend.position = "bottom",
+        axis.text.x = element_text(angle = 45, hjust = 1))
+
+print(p)
+```
+
