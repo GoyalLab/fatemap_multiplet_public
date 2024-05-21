@@ -1,6 +1,6 @@
 ### generating doublets for Zhang, Melzer, et al., 2024 in order to make classifier
 ### Created by Madeline E Melzer on 20231211
-### Last edited by Madeline E Melzer on 20240129
+### Last edited by Madeline E Melzer on 20240509
 ### code adapted from Ziyang Zhang, count_doublets_utils.py (chuckzzzz/doublet_benchmark github repo) and Goyal et al 2023, FM01_s1s2_integration_scTransForm_20210427_V2.R
 
 library(tidyverse)
@@ -11,7 +11,7 @@ library(sctransform)
 library(umap)
 options(future.globals.maxSize = 4000 * 1024^2)
 
-set.seed = 23
+set.seed(23)
 
 load_fatemap_into_seurat<-function(data_dir, cell_labels_prefix, doublets_pct){
   expression_matrix <- Read10X(data.dir = data_dir)
@@ -530,6 +530,24 @@ nonzero_genes_sample2 <- names(total_counts_sample2[total_counts_sample2 > 0])
 overlapping_genes <- intersect(nonzero_genes_sample1, nonzero_genes_sample2)
 
 s1s2_filtered <- subset(s1s2_scTransform.integrated, features = overlapping_genes)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

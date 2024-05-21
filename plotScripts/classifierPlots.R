@@ -10,7 +10,7 @@ library(purrr)
 library(ggbreak)
 library(scales)
 
-set.seed = 23
+set.seed(23)
 
 plot_directory = "/Volumes/fsmresfiles/Basic_Sciences/CDB/GoyalLab/People/MadelineMelzer/ZhangMelzerEtAl/plots/classifier/"
 dataset_dir = "/Volumes/fsmresfiles/Basic_Sciences/CDB/GoyalLab/People/MadelineMelzer/ZhangMelzerEtAl/data/classifier/results/datasetSummaries/datasets/"
@@ -182,8 +182,8 @@ data_formatted <- allData %>%
          condition = str_replace(condition, "0.10", "classifier"),
          condition = str_replace(condition, "0.20", "classifier"),
          condition = str_replace(condition, "FM01_params", "FM01 optimized parameters"),
-         condition = str_replace(condition, "doublet_finder", "DoubletFinder"),
-         condition = str_replace(condition, "scrublet", "Scrublet"),
+         condition = str_replace(condition, "DoubletFinder", "DoubletFinder"),
+         condition = str_replace(condition, "Scrublet", "Scrublet"),
          condition = str_replace(condition, "scDblFinder", "scDblFinder"))
 
 data_plot = data_formatted %>% 
@@ -191,6 +191,10 @@ data_plot = data_formatted %>%
   #filter(condition %in% c("classifier", "scrambled", "DoubletFinder", "scDblFinder", "Scrublet", "hybrid"))  %>%
   mutate(dataset = factor(dataset, levels = barcoded)) %>%
   mutate(dataset = recode(dataset, !!!barcodedRename))
+
+data_plot_toSave = data_plot %>% select(-"...1", -"...2", -auroc.groups)
+
+write_csv(data_plot_toSave, paste0(dataset_dir, "combined/final/allClassifierData_formatted.csv")) #20240325
 
 ## statistics 20240321
 
@@ -299,8 +303,8 @@ data_formatted <- allData %>%
          condition = str_replace(condition, ".*neg_control_singlets.*", "singlet control"),
          condition = str_replace(condition, ".*neg_control_scrambled.*", "scrambled"),
          condition = str_replace(condition, ".*shuffled.*", "shuffled"),
-         condition = str_replace(condition, "doublet_finder", "otherMethods"),
-         condition = str_replace(condition, "scrublet", "otherMethods"),
+         condition = str_replace(condition, "DoubletFinder", "otherMethods"),
+         condition = str_replace(condition, "Scrublet", "otherMethods"),
          condition = str_replace(condition, "scDblFinder", "otherMethods"),
          condition = str_replace(condition, "hybrid", "otherMethods"),
          condition = if_else(condition == as.character(dataset), "classifier", condition))
@@ -436,8 +440,8 @@ data_formatted <- data %>%
          condition = str_replace(condition, "0.10", "classifier"),
          condition = str_replace(condition, "0.20", "classifier"),
          condition = str_replace(condition, "FM01_params", "FM01 optimized parameters"),
-         condition = str_replace(condition, "doublet_finder", "DoubletFinder"),
-         condition = str_replace(condition, "scrublet", "Scrublet"),
+         condition = str_replace(condition, "DoubletFinder", "DoubletFinder"),
+         condition = str_replace(condition, "Scrublet", "Scrublet"),
          condition = str_replace(condition, "scDblFinder", "scDblFinder"))
 
 ### AUPRC
@@ -537,12 +541,14 @@ data_formatted <- data %>%
          condition = str_replace(condition, ".*neg_control_singlets.*", "singlet control"),
          condition = str_replace(condition, ".*neg_control_scrambled.*", "scrambled"),
          condition = str_replace(condition, ".*shuffled.*", "shuffled"),
-         condition = str_replace(condition, "doublet_finder", "DoubletFinder"),
-         condition = str_replace(condition, "scrublet", "Scrublet"),
-         condition = str_replace(condition, "scDblFinder", "scDblFinder"),
-         condition = str_replace(condition, "sample1", "classifier"),
-         condition = str_replace(condition, "sample2", "classifier"))
+         condition = str_replace(condition, "DoubletFinder", "DoubletFinder"),
+         condition = str_replace(condition, "Scrublet", "Scrublet"),
+         condition = str_replace(condition, "scDblFinder", "scDblFinder"))
+         #condition = str_replace(condition, "sample1", "classifier"),
+         #condition = str_replace(condition, "sample2", "classifier"))
 
+
+write_csv(data_formatted, "/Volumes/fsmresfiles/Basic_Sciences/CDB/GoyalLab/People/MadelineMelzer/ZhangMelzerEtAl/data/classifier/results/datasetSummaries/s1s2/alls1s2ForPlot_formatted.csv") #20240325
 
 data_summary = data_formatted %>% group_by(condition) %>% summarise(sdAuprc = sd(auprc), avgAuprc = mean(auprc), auprc.groups = 'drop')
 data_joined <- left_join(data_formatted, data_summary, by = "condition")
@@ -569,8 +575,8 @@ data_formatted <- data %>%
          condition = str_replace(condition, ".*neg_control_singlets.*", "singlet control"),
          condition = str_replace(condition, ".*neg_control_scrambled.*", "scrambled"),
          condition = str_replace(condition, ".*shuffled.*", "shuffled"),
-         condition = str_replace(condition, "doublet_finder", "otherMethods"),
-         condition = str_replace(condition, "scrublet", "otherMethods"),
+         condition = str_replace(condition, "DoubletFinder", "otherMethods"),
+         condition = str_replace(condition, "Scrublet", "otherMethods"),
          condition = str_replace(condition, "scDblFinder", "otherMethods"),
          condition = str_replace(condition, "hybrid", "otherMethods"),
          condition = str_replace(condition, "sample1", "classifier"),
@@ -658,8 +664,8 @@ data_formatted <- data_withBoth %>%
          condition = str_replace(condition, ".*neg_control_singlets.*", "singlet control"),
          condition = str_replace(condition, ".*neg_control_scrambled.*", "scrambled"),
          condition = str_replace(condition, ".*shuffled.*", "shuffled"),
-         condition = str_replace(condition, "doublet_finder", "DoubletFinder"),
-         condition = str_replace(condition, "scrublet", "Scrublet"),
+         condition = str_replace(condition, "DoubletFinder", "DoubletFinder"),
+         condition = str_replace(condition, "Scrublet", "Scrublet"),
          condition = str_replace(condition, "scDblFinder", "scDblFinder"),
          dataset = str_replace(dataset, "s1s2", "sample1 and sample2")) %>%
   select(-"best_params")
@@ -702,8 +708,8 @@ data_formatted <- allData %>%
          condition = str_replace(condition, ".*shuffled.*", "shuffled control"),
          condition = if_else(condition == as.character(dataset), "classifier", condition),
          condition = str_replace(condition, "FM01_params", "FM01 optimized parameters"),
-         condition = str_replace(condition, "doublet_finder", "otherMethods"),
-         condition = str_replace(condition, "scrublet", "otherMethods"),
+         condition = str_replace(condition, "DoubletFinder", "otherMethods"),
+         condition = str_replace(condition, "Scrublet", "otherMethods"),
          condition = str_replace(condition, "scDblFinder", "otherMethods"),
          condition = str_replace(condition, "hybrid", "otherMethods"))
 
