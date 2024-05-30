@@ -3,7 +3,6 @@
 ### Last edited by Madeline E Melzer on 20240319
 # added updated paths for summation doublets and plotted, also re-plotted non-barcoded benchmarking data
 
-
 library(tidyverse)
 library(ggplot2)
 library(dplyr)
@@ -13,7 +12,7 @@ library(ggbreak)
 library(scales)
 library(glue)
 
-set.seed = 23
+set.seed(23)
 
 plotDirectory = "/Volumes/fsmresfiles/Basic_Sciences/CDB/GoyalLab/People/MadelineMelzer/ZhangMelzerEtAl/plots/benchmarkingResults/"
 dataDirectory = "/Volumes/fsmresfiles/Basic_Sciences/CDB/GoyalLab/People/MadelineMelzer/ZhangMelzerEtAl/data/charles/finalBenchmarking/"
@@ -26,13 +25,29 @@ palette = c("classifier" = "#f59fff",
             "scrambled" = "#007024",
             "otherMethods" = "#808285")
 
+barcodedDatasets_fromPublicData = c("Goyal et al. 1", 
+                                    "Goyal et al. 2", 
+                                    "Goyal et al. 3", 
+                                    "Goyal et al. 4", 
+                                    "Goyal et al. 5", 
+                                    "Goyal et al. 6", 
+                                    "Goyal et al. 8", 
+                                    "Jain et al.",
+                                    "Jiang et al.", 
+                                    "ClonMapper", 
+                                    "SPLINTR", 
+                                    "LARRY",
+                                    "CellTag-multi",
+                                    "Watermelon",
+                                    "TREX")
+
 nonBarcodedDatasets = c("cline-ch", 
                 "hm-12k", 
                 "hm-6k", 
                 "HMEC-orig-MULTI", 
                 "HMEC-rep-MULTI",
                 "HEK-HMEC-MULTI",
-                #"J293t-dm", #the datas
+                #"J293t-dm", 
                 "mkidney-ch", 
                 #"pbmc-1A-dm", 
                 #"pbmc-1B-dm",
@@ -185,7 +200,6 @@ barcoded = bind_rows(final, partial_rerun)
 #write_csv(barcoded, "/Volumes/fsmresfiles/Basic_Sciences/CDB/GoyalLab/People/MadelineMelzer/ZhangMelzerEtAl/data/charles/finalBenchmarking/reDownloaded/barcodedAllForPlot.csv")
 
 
-
 barcodedDatasets = c("FM01", 
                      "FM02", 
                      "FM03", 
@@ -205,9 +219,9 @@ barcodedDatasets = c("FM01",
 barcodedRename = c("FM01" = "Goyal et al. 1", 
                    "FM02" = "Goyal et al. 2", 
                    "FM03" = "Goyal et al. 3", 
-                   "FM04" = "Goyal et al. 4", 
-                   "FM05" = "Goyal et al. 5", 
-                   "FM06" = "Goyal et al. 6", 
+                   "FM04" = "Goyal et al. 3", 
+                   "FM05" = "Goyal et al. 3", 
+                   "FM06" = "Goyal et al. 3", 
                    "FM08" = "Goyal et al. 8", 
                    "non_cancer" = "Jiang et al.", 
                    #"ClonMapper", 
@@ -224,6 +238,9 @@ barcodedRename = c("FM01" = "Goyal et al. 1",
 #    all datasets AUPRC        #
 #                              #
 ################################
+
+publicData = read.csv("/Users/mem3579/Library/CloudStorage/GoogleDrive-madelinemelzer22@gmail.com/.shortcut-targets-by-id/1-D5WmOkOyy8I-wVx8VYZ-NDotfIYludl/ZhangMelzerEtAl/Revisions/plotData/benchmarking/barcodedNonBarcoded_AUPRC_AUROC_TNR.csv")
+barcoded = publicData %>% filter(isBarcoded == "Barcoded")
 
 barcoded_formatted <- barcoded %>%
   mutate(condition = str_replace(condition, "doublet_finder", "DoubletFinder"),
@@ -242,10 +259,10 @@ barcoded_formatted <- barcoded %>%
 barcoded_summary = barcoded_formatted %>% group_by(dataset, condition) %>% summarise(sdAuprc = sd(auprc), avgAuprc = mean(auprc))
 barcoded_plot <- left_join(barcoded_formatted, barcoded_summary, by = c("dataset", "condition"))
 
-barcoded_plot$dataset <- factor(barcoded_plot$dataset, levels = barcodedDatasets)
-barcoded_plot <- barcoded_plot %>%
-  filter(dataset %in% barcodedDatasets) %>%
-  mutate(dataset = recode(dataset, !!!barcodedRename))
+barcoded_plot$dataset <- factor(barcoded_plot$dataset, levels = barcodedDatasets_fromPublicData)
+#barcoded_plot <- barcoded_plot %>%
+#  filter(dataset %in% barcodedDatasets) %>%
+#  mutate(dataset = recode(dataset, !!!barcodedRename))
 
 # box whisker
 plot = ggplot(barcoded_plot, aes(x = dataset, y = auprc, fill = condition)) +
@@ -264,8 +281,8 @@ plot = ggplot(barcoded_plot, aes(x = dataset, y = auprc, fill = condition)) +
         axis.text.x = element_text(angle = 45, hjust = 1))
 plot
 
-ggsave(plot, file = paste0(plotDirectory, 'benchmarkingResults_barcoded_AUPRC_0.08.svg'), width = 7, height = 4)
-ggsave(plot, file = paste0(plotDirectory, 'benchmarkingResults_barcoded_AUPRC_0.08.png'), width = 7, height = 4)
+#ggsave(plot, file = paste0(plotDirectory, 'benchmarkingResults_barcoded_AUPRC_0.08.svg'), width = 7, height = 4)
+#ggsave(plot, file = paste0(plotDirectory, 'benchmarkingResults_barcoded_AUPRC_0.08.png'), width = 7, height = 4)
 
 ################################
 #                              #
@@ -277,10 +294,10 @@ barcoded_summary <- barcoded_formatted %>% group_by(dataset, condition) %>% summ
 
 barcoded_plot <- left_join(barcoded_formatted, barcoded_summary, by = c("dataset", "condition"))
 
-barcoded_plot$dataset <- factor(barcoded_plot$dataset, levels = barcodedDatasets)
-barcoded_plot <- barcoded_plot %>%
-  filter(dataset %in% barcodedDatasets) %>%
-  mutate(dataset = recode(dataset, !!!barcodedRename))
+barcoded_plot$dataset <- factor(barcoded_plot$dataset, levels = barcodedDatasets_fromPublicData)
+#barcoded_plot <- barcoded_plot %>%
+#  filter(dataset %in% barcodedDatasets) %>%
+#  mutate(dataset = recode(dataset, !!!barcodedRename))
 
 # Box whisker plot updated to use auroc instead of auprc
 plot <- ggplot(barcoded_plot, aes(x = dataset, y = auroc, fill = condition)) + # Replaced auprc with auroc
@@ -300,8 +317,8 @@ plot <- ggplot(barcoded_plot, aes(x = dataset, y = auroc, fill = condition)) + #
 plot
 
 # Saving the plot
-ggsave(plot, file = paste0(plotDirectory, 'benchmarkingResults_barcoded_AUROC_0.08.svg'), width = 7, height = 4)
-ggsave(plot, file = paste0(plotDirectory, 'benchmarkingResults_barcoded_AUROC_0.08.png'), width = 7, height = 4)
+#ggsave(plot, file = paste0(plotDirectory, 'benchmarkingResults_barcoded_AUROC_0.08.svg'), width = 7, height = 4)
+#ggsave(plot, file = paste0(plotDirectory, 'benchmarkingResults_barcoded_AUROC_0.08.png'), width = 7, height = 4)
 
 
 
@@ -311,8 +328,6 @@ ggsave(plot, file = paste0(plotDirectory, 'benchmarkingResults_barcoded_AUROC_0.
 #    barcoded/nonBarcoded      #
 #                              #
 ################################
-
-
 
 ########## bringing together all of the updated nonBarcoded data from the rerun (20240320)
 dataDirectory = "/Volumes/fsmresfiles/Basic_Sciences/CDB/GoyalLab/People/MadelineMelzer/ZhangMelzerEtAl/data/charles/finalBenchmarking/withUpdatedNonBarcodedData"
@@ -333,7 +348,7 @@ nonBarcoded_8 <- map_dfr(subfolders, ~{
     tibble()  # Return an empty tibble if the file doesn't exist
   }
 })
-write.csv(nonBarcoded_8, glue("{dataDirectory}/nonBarcoded_8.csv"))
+#write.csv(nonBarcoded_8, glue("{dataDirectory}/nonBarcoded_8.csv"))
 
 
 nonBarcoded_noSubsampling <- map_dfr(subfolders, ~{
@@ -350,7 +365,7 @@ nonBarcoded_noSubsampling <- map_dfr(subfolders, ~{
     tibble()  # Return an empty tibble if the file doesn't exist
   }
 })
-write.csv(nonBarcoded_noSubsampling, glue("{dataDirectory}/nonBarcoded_noSubsampling.csv"))
+#write.csv(nonBarcoded_noSubsampling, glue("{dataDirectory}/nonBarcoded_noSubsampling.csv"))
 
 
 
@@ -374,7 +389,7 @@ barcoded_grouped = barcoded %>% group_by(dataset, condition, sample) %>%
     dbl_act = mean(dbl_act, na.rm = TRUE),#average AUPRC for each sample, across all dbl_exp
     .groups = 'drop') %>% mutate(type = "average")
 barcoded_grouped_filtered = barcoded_grouped %>% filter(dataset != "smartseq3_reads")  %>% filter(dataset != "smartseq3_umis")
-write.csv(barcoded_grouped_filtered, glue("{dataDirectory}/barcoded_0.08_average_collapsedByDblExp.csv"))
+#write.csv(barcoded_grouped_filtered, glue("{dataDirectory}/barcoded_0.08_average_collapsedByDblExp.csv"))
 
 
 nonBarcoded_8 = read.csv(glue("{dataDirectory}/nonBarcoded_8.csv"))
@@ -383,7 +398,7 @@ nonBarcoded_8 = nonBarcoded_8 %>% filter(dataset %in% nonBarcodedDatasets) %>%
          condition = str_replace(condition, "scrublet", "Scrublet"),
          condition = str_replace(condition, "scDblFinder", "scDblFinder"),
          condition = as.factor(condition))
-write.csv(nonBarcoded_8, glue("{dataDirectory}/nonBarcoded_0.08_filtered.csv"))
+#write.csv(nonBarcoded_8, glue("{dataDirectory}/nonBarcoded_0.08_filtered.csv"))
 
 
 
@@ -393,7 +408,7 @@ nonBarcoded_noSubsampling = nonBarcoded_noSubsampling %>% filter(dataset %in% no
          condition = str_replace(condition, "scrublet", "Scrublet"),
          condition = str_replace(condition, "scDblFinder", "scDblFinder"),
          condition = as.factor(condition))
-write.csv(nonBarcoded_noSubsampling, glue("{dataDirectory}/nonBarcoded_noSubsampling_filtered.csv"))
+#write.csv(nonBarcoded_noSubsampling, glue("{dataDirectory}/nonBarcoded_noSubsampling_filtered.csv"))
 
 
 
@@ -411,6 +426,10 @@ BCnBC_formatted <- BCnBC %>%
   dplyr::filter(isBarcoded %in% c("Barcoded", "NonBarcoded"))
 
 ### AUPRC
+
+publicData = read.csv("/Users/mem3579/Library/CloudStorage/GoogleDrive-madelinemelzer22@gmail.com/.shortcut-targets-by-id/1-D5WmOkOyy8I-wVx8VYZ-NDotfIYludl/ZhangMelzerEtAl/Revisions/plotData/benchmarking/barcodedNonBarcoded_AUPRC_AUROC_TNR.csv")
+BCnBC_formatted = publicData
+
 
 BCnBC_summary <- BCnBC_formatted %>%
   group_by(isBarcoded, condition) %>%
@@ -435,8 +454,8 @@ plot <- ggplot(BCnBC_plot, aes(x = isBarcoded, y = auprc, fill = condition)) +
   theme(legend.position = "none")
 plot
 
-ggsave(plot, file = paste0(plotDirectory, 'barcodedNonBarcoded/benchmarkingResults_barcodedNonBarcoded_AUPRC_0.08.svg'), width = 2.5, height = 2.5)
-ggsave(plot, file = paste0(plotDirectory, 'barcodedNonBarcoded/benchmarkingResults_barcodedNonBarcoded_AUPRC_0.08.png'), width = 2.5, height = 2.5)
+#ggsave(plot, file = paste0(plotDirectory, 'barcodedNonBarcoded/benchmarkingResults_barcodedNonBarcoded_AUPRC_0.08.svg'), width = 2.5, height = 2.5)
+#ggsave(plot, file = paste0(plotDirectory, 'barcodedNonBarcoded/benchmarkingResults_barcodedNonBarcoded_AUPRC_0.08.png'), width = 2.5, height = 2.5)
 
 
 ### AUROC
@@ -463,11 +482,15 @@ plot <- ggplot(BCnBC_plot, aes(x = isBarcoded, y = auroc, fill = condition)) +
   theme(legend.position = "none")
 plot
 
-ggsave(plot, filename = paste0(plotDirectory, 'barcodedNonBarcoded/benchmarkingResults_barcodedNonBarcoded_AUROC_0.08.svg'), width = 2.5, height = 2.5)
-ggsave(plot, filename = paste0(plotDirectory, 'barcodedNonBarcoded/benchmarkingResults_barcodedNonBarcoded_AUROC_0.08.png'), width = 2.5, height = 2.5)
+#ggsave(plot, filename = paste0(plotDirectory, 'barcodedNonBarcoded/benchmarkingResults_barcodedNonBarcoded_AUROC_0.08.svg'), width = 2.5, height = 2.5)
+#ggsave(plot, filename = paste0(plotDirectory, 'barcodedNonBarcoded/benchmarkingResults_barcodedNonBarcoded_AUROC_0.08.png'), width = 2.5, height = 2.5)
 
 
 ## for the non subsampled barcoded datasets
+
+publicData = read.csv("/Users/mem3579/Library/CloudStorage/GoogleDrive-madelinemelzer22@gmail.com/.shortcut-targets-by-id/1-D5WmOkOyy8I-wVx8VYZ-NDotfIYludl/ZhangMelzerEtAl/Revisions/plotData/benchmarking/barcodedNonBarcoded_AUPRC_AUROC_TNR.csv")
+barcoded = publicData %>% filter(isBarcoded == "Barcoded")
+nonBarcoded_noSubsampling = read.csv("/Users/mem3579/Library/CloudStorage/GoogleDrive-madelinemelzer22@gmail.com/.shortcut-targets-by-id/1-D5WmOkOyy8I-wVx8VYZ-NDotfIYludl/ZhangMelzerEtAl/Revisions/plotData/benchmarking/nonBarcoded_noSubsampling_filtered.csv")
 
 BCnBC = bind_rows(barcoded, nonBarcoded_noSubsampling) %>% filter(dataset != "smartseq3_reads")  %>% filter(dataset != "smartseq3_umis")
 
@@ -504,8 +527,8 @@ plot <- ggplot(BCnBC_plot, aes(x = isBarcoded, y = auprc, fill = condition)) +
   theme(legend.position = "none")
 plot
 
-ggsave(plot, file = paste0(plotDirectory, 'barcodedNonBarcoded/benchmarkingResults_barcodedNonBarcoded_AUPRC_noSubsampling.svg'), width = 2.5, height = 2.5)
-ggsave(plot, file = paste0(plotDirectory, 'barcodedNonBarcoded/benchmarkingResults_barcodedNonBarcoded_AUPRC_noSubsampling.png'), width = 2.5, height = 2.5)
+#ggsave(plot, file = paste0(plotDirectory, 'barcodedNonBarcoded/benchmarkingResults_barcodedNonBarcoded_AUPRC_noSubsampling.svg'), width = 2.5, height = 2.5)
+#ggsave(plot, file = paste0(plotDirectory, 'barcodedNonBarcoded/benchmarkingResults_barcodedNonBarcoded_AUPRC_noSubsampling.png'), width = 2.5, height = 2.5)
 
 
 ### AUROC
@@ -532,8 +555,8 @@ plot <- ggplot(BCnBC_plot, aes(x = isBarcoded, y = auroc, fill = condition)) +
   theme(legend.position = "none")
 plot
 
-ggsave(plot, filename = paste0(plotDirectory, 'barcodedNonBarcoded/benchmarkingResults_barcodedNonBarcoded_AUROC_noSubsampling.svg'), width = 2.5, height = 2.5)
-ggsave(plot, filename = paste0(plotDirectory, 'barcodedNonBarcoded/benchmarkingResults_barcodedNonBarcoded_AUROC_noSubsampling.png'), width = 2.5, height = 2.5)
+#ggsave(plot, filename = paste0(plotDirectory, 'barcodedNonBarcoded/benchmarkingResults_barcodedNonBarcoded_AUROC_noSubsampling.svg'), width = 2.5, height = 2.5)
+#ggsave(plot, filename = paste0(plotDirectory, 'barcodedNonBarcoded/benchmarkingResults_barcodedNonBarcoded_AUROC_noSubsampling.png'), width = 2.5, height = 2.5)
 
 
 
@@ -565,8 +588,13 @@ tnrData_nonBarcoded_filtered = tnrData_nonBarcoded %>%
 
 
 tnrData_BCnBC = bind_rows(tnrData_barcoded_filtered, tnrData_nonBarcoded_filtered) #length = 348 + 48 = 396
-write.csv(tnrData_BCnBC, "/Volumes/fsmresfiles/Basic_Sciences/CDB/GoyalLab/People/MadelineMelzer/ZhangMelzerEtAl/data/charles/finalBenchmarking/withUpdatedNonBarcodedData/TNR_8_barcodedNonBarcoded.csv") #note data directory
+#write.csv(tnrData_BCnBC, "/Volumes/fsmresfiles/Basic_Sciences/CDB/GoyalLab/People/MadelineMelzer/ZhangMelzerEtAl/data/charles/finalBenchmarking/withUpdatedNonBarcodedData/TNR_8_barcodedNonBarcoded.csv") #note data directory
 
+
+
+
+publicData = read.csv("/Users/mem3579/Library/CloudStorage/GoogleDrive-madelinemelzer22@gmail.com/.shortcut-targets-by-id/1-D5WmOkOyy8I-wVx8VYZ-NDotfIYludl/ZhangMelzerEtAl/Revisions/plotData/benchmarking/barcodedNonBarcoded_AUPRC_AUROC_TNR.csv")
+tnrData_BCnBC = publicData
 
 BCnBC_summary <- tnrData_BCnBC %>%
   group_by(isBarcoded, condition) %>%
@@ -591,8 +619,8 @@ plot <- ggplot(BCnBC_plot, aes(x = isBarcoded, y = TNR, fill = condition)) +
   theme(legend.position = "none")
 plot
 
-ggsave(plot, file = paste0(plotDirectory, 'barcodedNonBarcoded/benchmarkingResults_barcodedNonBarcoded_TNR_0.08.svg'), width = 2.5, height = 2.5)
-ggsave(plot, file = paste0(plotDirectory, 'barcodedNonBarcoded/benchmarkingResults_barcodedNonBarcoded_TNR_0.08.png'), width = 2.5, height = 2.5)
+#ggsave(plot, file = paste0(plotDirectory, 'barcodedNonBarcoded/benchmarkingResults_barcodedNonBarcoded_TNR_0.08.svg'), width = 2.5, height = 2.5)
+#ggsave(plot, file = paste0(plotDirectory, 'barcodedNonBarcoded/benchmarkingResults_barcodedNonBarcoded_TNR_0.08.png'), width = 2.5, height = 2.5)
 
   
 
@@ -615,7 +643,7 @@ barcodedNonBarcoded = bind_rows(barcoded, nonBarcoded) %>%
 tnr_used = tnr %>% select(dataset, sample, condition, TNR)
 
 allBarcodedNonBarcoded = inner_join(barcodedNonBarcoded, tnr_used, by = join_by(dataset, sample, condition))
-write.csv(allBarcodedNonBarcoded, "/Volumes/fsmresfiles/Basic_Sciences/CDB/GoyalLab/People/MadelineMelzer/ZhangMelzerEtAl/data/charles/finalBenchmarking/barcodedNonBarcoded_AUPRC_AUROC_TNR.csv")
+#write.csv(allBarcodedNonBarcoded, "/Volumes/fsmresfiles/Basic_Sciences/CDB/GoyalLab/People/MadelineMelzer/ZhangMelzerEtAl/data/charles/finalBenchmarking/barcodedNonBarcoded_AUPRC_AUROC_TNR.csv")
 
 
 ### averages:
@@ -807,7 +835,7 @@ tnrData <- tnrData %>% # Extract numeric values for 'dbl_exp' and 'dbl_act', adj
 tnrData <- tnrData %>% select(-exp_part, -act_part) # Drop the intermediate columns
 
 #write.csv(tnrData, glue("{tnrDirectory}/TNR_plotted.csv"))
-#tnrData = read.csv(glue("{tnrDirectory}/TNR_plotted.csv"))
+tnrData = read.csv(glue("{tnrDirectory}/TNR_plotted.csv"))
 
 ### filtering so we only plot relevant samples
 
@@ -827,7 +855,12 @@ tnr_formatted = tnrData %>%
   mutate(condition = str_replace(condition, "doublet_finder", "DoubletFinder"),
          condition = str_replace(condition, "scrublet", "Scrublet"),
          condition = str_replace(condition, "scDblFinder", "scDblFinder"),
-         condition = as.factor(condition))
+         condition = as.factor(condition)) %>%
+  filter(dataset %in% barcodedDatasets) %>%
+  mutate(dataset = recode(dataset, !!!barcodedRename), dataset = str_replace(dataset, "non_cancer", "Jiang et al."))
+  
+
+write.csv(tnr_formatted, glue("{tnrDirectory}/TNR_plotted_formatted.csv"))
 
 ### plotting
 
@@ -839,18 +872,22 @@ tnr_collapsedByDblExp = tnr_formatted %>% group_by(dataset, condition, sample) %
     .groups = 'drop'
   ) %>% mutate(type = "average")
 
-write.csv(tnr_collapsedByDblExp, "/Volumes/fsmresfiles/Basic_Sciences/CDB/GoyalLab/People/MadelineMelzer/ZhangMelzerEtAl/data/charles/finalBenchmarking/TNR_barcoded_averageDoublets.csv")
+#write.csv(tnr_collapsedByDblExp, "/Volumes/fsmresfiles/Basic_Sciences/CDB/GoyalLab/People/MadelineMelzer/ZhangMelzerEtAl/data/charles/finalBenchmarking/TNR_barcoded_averageDoublets.csv")
+
+publicData_TNR = read.csv("/Users/mem3579/Library/CloudStorage/GoogleDrive-madelinemelzer22@gmail.com/.shortcut-targets-by-id/1-D5WmOkOyy8I-wVx8VYZ-NDotfIYludl/ZhangMelzerEtAl/Revisions/plotData/benchmarking/TNR_plotted_formatted.csv")
+
+tnr_formatted = publicData_TNR
 
 tnr_summary <- tnr_formatted %>% group_by(dataset, condition) %>% summarise(sdTNR = sd(TNR), avgTNR = mean(TNR))
 
 tnr_plot <- left_join(tnr_formatted, tnr_summary, by = c("dataset", "condition"))
 
-tnr_plot$dataset <- factor(tnr_plot$dataset, levels = barcodedDatasets)
-tnr_plot <- tnr_plot %>%
-  filter(dataset %in% barcodedDatasets) %>%
-  mutate(dataset = recode(dataset, !!!barcodedRename))
+tnr_plot$dataset <- factor(tnr_plot$dataset, levels = barcodedDatasets_fromPublicData)
+#tnr_plot <- tnr_plot %>%
+#  filter(dataset %in% barcodedDatasets) %>%
+#  mutate(dataset = recode(dataset, !!!barcodedRename), dataset = str_replace(dataset, "non_cancer", "Jiang et al."))
 
-plot <- ggplot(tnr_plot, aes(x = dataset, y = TNR, fill = condition)) + # Keep 'auroc' here if it's a column name in your data
+plot <- ggplot(tnr_plot, aes(x = dataset, y = TNR, fill = condition)) + 
   geom_boxplot(aes(fill = condition), color = NA, alpha = 0.3, position = 'dodge') +
   geom_pointrange(aes(x = dataset, y =avgTNR, ymin = avgTNR-sdTNR, ymax = avgTNR+sdTNR, color = condition),
                   position = position_dodge(width = 0.75), size = 0.2, shape = 16) +
@@ -865,9 +902,8 @@ plot <- ggplot(tnr_plot, aes(x = dataset, y = TNR, fill = condition)) + # Keep '
         legend.box = "horizontal",
         axis.text.x = element_text(angle = 45, hjust = 1))
 plot
-
-ggsave(plot, filename = paste0(plotDirectory, 'benchmarkingResults_barcoded_TNR_0.08.svg'), width = 7, height = 4)
-ggsave(plot, filename = paste0(plotDirectory, 'benchmarkingResults_barcoded_TNR_0.08.png'), width = 7, height = 4)
+#ggsave(plot, filename = paste0(plotDirectory, 'benchmarkingResults_barcoded_TNR_0.08.svg'), width = 7, height = 4)
+#ggsave(plot, filename = paste0(plotDirectory, 'benchmarkingResults_barcoded_TNR_0.08.png'), width = 7, height = 4)
 
 
 
@@ -916,7 +952,7 @@ final <- map_dfr(subfolders, ~{
 })
 
 dataDirectory = "/Volumes/fsmresfiles/Basic_Sciences/CDB/GoyalLab/People/MadelineMelzer/ZhangMelzerEtAl/data/charles/final_sum_rerun20240319/"
-write.csv(final, paste0(dataDirectory, "allBenchmarking_sum.csv"))
+#write.csv(final, paste0(dataDirectory, "allBenchmarking_sum.csv"))
 
 
 #need to filter it out for only the samples we want, 
@@ -932,7 +968,7 @@ filtered_final <- final %>%
   mutate(dataset = str_replace(dataset, "non", "non_cancer"))
 
 
-write.csv(filtered_final, paste0(dataDirectory, "allBenchmarking_sum_filteredForUsableDatasets.csv"))
+#write.csv(filtered_final, paste0(dataDirectory, "allBenchmarking_sum_filteredForUsableDatasets.csv"))
 
 
 ################################
@@ -959,20 +995,21 @@ barcoded_formatted <- barcoded %>%
 
 #forSummedVsAveraged
 barcoded_formatted_mutated = barcoded_formatted %>% mutate(type = "sum")
-write.csv(barcoded_formatted_mutated, glue("{dataDirectory}barcoded_0.08_summed_collapsedByDblExp.csv"))
+#write.csv(barcoded_formatted_mutated, glue("{dataDirectory}barcoded_0.08_summed_collapsedByDblExp.csv"))
 
 
 
-
+publicData_sum = read.csv("/Users/mem3579/Library/CloudStorage/GoogleDrive-madelinemelzer22@gmail.com/.shortcut-targets-by-id/1-D5WmOkOyy8I-wVx8VYZ-NDotfIYludl/ZhangMelzerEtAl/Revisions/plotData/averagedAndSummedDoublets/averagedAndSummedDoublets.csv")
+barcoded_formatted = publicData_sum %>% filter(type == "sum")
 
 # auprc-specific
 barcoded_summary = barcoded_formatted %>% group_by(dataset, condition) %>% summarise(sdAuprc = sd(auprc), avgAuprc = mean(auprc))
 barcoded_plot <- left_join(barcoded_formatted, barcoded_summary, by = c("dataset", "condition"))
 
-barcoded_plot$dataset <- factor(barcoded_plot$dataset, levels = barcodedDatasets)
-barcoded_plot <- barcoded_plot %>%
-  filter(dataset %in% barcodedDatasets) %>%
-  mutate(dataset = recode(dataset, !!!barcodedRename))
+barcoded_plot$dataset <- factor(barcoded_plot$dataset, levels = barcodedDatasets_fromPublicData)
+#barcoded_plot <- barcoded_plot %>%
+#  filter(dataset %in% barcodedDatasets) %>%
+#  mutate(dataset = recode(dataset, !!!barcodedRename))
 
 # box whisker
 plot = ggplot(barcoded_plot, aes(x = dataset, y = auprc, fill = condition)) +
@@ -991,8 +1028,8 @@ plot = ggplot(barcoded_plot, aes(x = dataset, y = auprc, fill = condition)) +
         axis.text.x = element_text(angle = 45, hjust = 1))
 plot
 
-ggsave(plot, file = paste0(plotDirectory, 'benchmarkingResults_barcoded_AUPRC_0.08_sum.svg'), width = 7, height = 4)
-ggsave(plot, file = paste0(plotDirectory, 'benchmarkingResults_barcoded_AUPRC_0.08_sum.png'), width = 7, height = 4)
+#ggsave(plot, file = paste0(plotDirectory, 'benchmarkingResults_barcoded_AUPRC_0.08_sum.svg'), width = 7, height = 4)
+#ggsave(plot, file = paste0(plotDirectory, 'benchmarkingResults_barcoded_AUPRC_0.08_sum.png'), width = 7, height = 4)
 
 
 ################################
@@ -1003,10 +1040,10 @@ barcoded_summary <- barcoded_formatted %>% group_by(dataset, condition) %>% summ
 
 barcoded_plot <- left_join(barcoded_formatted, barcoded_summary, by = c("dataset", "condition"))
 
-barcoded_plot$dataset <- factor(barcoded_plot$dataset, levels = barcodedDatasets)
-barcoded_plot <- barcoded_plot %>%
-  filter(dataset %in% barcodedDatasets) %>%
-  mutate(dataset = recode(dataset, !!!barcodedRename))
+barcoded_plot$dataset <- factor(barcoded_plot$dataset, levels = barcodedDatasets_fromPublicData)
+#barcoded_plot <- barcoded_plot %>%
+#  filter(dataset %in% barcodedDatasets) %>%
+#  mutate(dataset = recode(dataset, !!!barcodedRename))
 
 # Box whisker plot updated to use auroc instead of auprc
 plot <- ggplot(barcoded_plot, aes(x = dataset, y = auroc, fill = condition)) + # Replaced auprc with auroc
@@ -1026,8 +1063,8 @@ plot <- ggplot(barcoded_plot, aes(x = dataset, y = auroc, fill = condition)) + #
 plot
 
 # Saving the plot
-ggsave(plot, file = paste0(plotDirectory, 'benchmarkingResults_barcoded_AUROC_0.08_sum.svg'), width = 7, height = 4)
-ggsave(plot, file = paste0(plotDirectory, 'benchmarkingResults_barcoded_AUROC_0.08_sum.png'), width = 7, height = 4)
+#ggsave(plot, file = paste0(plotDirectory, 'benchmarkingResults_barcoded_AUROC_0.08_sum.svg'), width = 7, height = 4)
+#ggsave(plot, file = paste0(plotDirectory, 'benchmarkingResults_barcoded_AUROC_0.08_sum.png'), width = 7, height = 4)
 
 
 
@@ -1067,7 +1104,13 @@ tnr_formatted = tnrData %>%
   mutate(condition = str_replace(condition, "doublet_finder", "DoubletFinder"),
          condition = str_replace(condition, "scrublet", "Scrublet"),
          condition = str_replace(condition, "scDblFinder", "scDblFinder"),
-         condition = as.factor(condition))
+         condition = as.factor(condition)) %>%
+  filter(dataset %in% barcodedDatasets) %>%
+  mutate(dataset = recode(dataset, !!!barcodedRename), dataset = str_replace(dataset, "non_cancer", "Jiang et al."))
+
+
+write.csv(tnr_formatted, glue("{tnrDirectory}/TNR_plotted_formatted_sum.csv"))
+
 
 ### plotting
 
@@ -1082,16 +1125,18 @@ tnr_collapsedByDblExp = tnr_formatted %>% group_by(dataset, condition, sample) %
 #write.csv(tnr_collapsedByDblExp, "/Volumes/fsmresfiles/Basic_Sciences/CDB/GoyalLab/People/MadelineMelzer/ZhangMelzerEtAl/data/charles/finalBenchmarking/TNR_barcoded_summedDoublets.csv")
 
 
+publicData_TNR_sum = read.csv("/Users/mem3579/Library/CloudStorage/GoogleDrive-madelinemelzer22@gmail.com/.shortcut-targets-by-id/1-D5WmOkOyy8I-wVx8VYZ-NDotfIYludl/ZhangMelzerEtAl/Revisions/plotData/averagedAndSummedDoublets/TNR_plotted_formatted_sum.csv")
+tnr_formatted = publicData_TNR_sum
 tnr_summary <- tnr_formatted %>% group_by(dataset, condition) %>% summarise(sdTNR = sd(TNR), avgTNR = mean(TNR))
 
 tnr_plot <- left_join(tnr_formatted, tnr_summary, by = c("dataset", "condition"))
 
 #write.csv(tnr_plot, glue("{tnrDirectory}/TNR_plotted_sum.csv"))
 
-tnr_plot$dataset <- factor(tnr_plot$dataset, levels = barcodedDatasets)
-tnr_plot <- tnr_plot %>%
-  filter(dataset %in% barcodedDatasets) %>%
-  mutate(dataset = recode(dataset, !!!barcodedRename))
+tnr_plot$dataset <- factor(tnr_plot$dataset, levels = barcodedDatasets_fromPublicData)
+#tnr_plot <- tnr_plot %>%
+#  filter(dataset %in% barcodedDatasets) %>%
+#  mutate(dataset = recode(dataset, !!!barcodedRename))
 
 plot <- ggplot(tnr_plot, aes(x = dataset, y = TNR, fill = condition)) + # Keep 'auroc' here if it's a column name in your data
   geom_boxplot(aes(fill = condition), color = NA, alpha = 0.3, position = 'dodge') +
@@ -1109,8 +1154,8 @@ plot <- ggplot(tnr_plot, aes(x = dataset, y = TNR, fill = condition)) + # Keep '
         axis.text.x = element_text(angle = 45, hjust = 1))
 plot
 
-ggsave(plot, filename = paste0(plotDirectory, 'benchmarkingResults_barcoded_TNR_0.08_sum.svg'), width = 7, height = 4)
-ggsave(plot, filename = paste0(plotDirectory, 'benchmarkingResults_barcoded_TNR_0.08_sum.png'), width = 7, height = 4)
+#ggsave(plot, filename = paste0(plotDirectory, 'benchmarkingResults_barcoded_TNR_0.08_sum.svg'), width = 7, height = 4)
+#ggsave(plot, filename = paste0(plotDirectory, 'benchmarkingResults_barcoded_TNR_0.08_sum.png'), width = 7, height = 4)
 
 
 
@@ -1145,7 +1190,7 @@ averageAndSum = bind_rows(average, sum) %>%
   mutate(dataset = recode(dataset, !!!barcodedRename)) %>% 
   select(-X)
 
-write.csv(averageAndSum,"/Volumes/fsmresfiles/Basic_Sciences/CDB/GoyalLab/People/MadelineMelzer/ZhangMelzerEtAl/data/charles/finalBenchmarking/averagedAndSummedDoublets_AUPRC_AUROC.csv")
+#write.csv(averageAndSum,"/Volumes/fsmresfiles/Basic_Sciences/CDB/GoyalLab/People/MadelineMelzer/ZhangMelzerEtAl/data/charles/finalBenchmarking/averagedAndSummedDoublets_AUPRC_AUROC.csv")
 
 tnr_average = read.csv("/Volumes/fsmresfiles/Basic_Sciences/CDB/GoyalLab/People/MadelineMelzer/ZhangMelzerEtAl/data/charles/finalBenchmarking/TNR_barcoded_averageDoublets.csv")
 tnr_sum = read.csv("/Volumes/fsmresfiles/Basic_Sciences/CDB/GoyalLab/People/MadelineMelzer/ZhangMelzerEtAl/data/charles/finalBenchmarking/TNR_barcoded_summedDoublets.csv")
@@ -1154,11 +1199,11 @@ averageAndSum_tnr = bind_rows(tnr_average, tnr_sum) %>%
   select(-X)%>%
   mutate(dataset = recode(dataset, !!!barcodedRename))
 
-write.csv(averageAndSum_tnr,"/Volumes/fsmresfiles/Basic_Sciences/CDB/GoyalLab/People/MadelineMelzer/ZhangMelzerEtAl/data/charles/finalBenchmarking/averagedAndSummedDoublets_TNR.csv")
+#write.csv(averageAndSum_tnr,"/Volumes/fsmresfiles/Basic_Sciences/CDB/GoyalLab/People/MadelineMelzer/ZhangMelzerEtAl/data/charles/finalBenchmarking/averagedAndSummedDoublets_TNR.csv")
 
 
 averageAndSum_all = inner_join(averageAndSum, averageAndSum_tnr, by = c("dataset", "condition", "sample", "type", "dbl_act"))
-write.csv(averageAndSum_all,"/Volumes/fsmresfiles/Basic_Sciences/CDB/GoyalLab/People/MadelineMelzer/ZhangMelzerEtAl/data/charles/finalBenchmarking/averagedAndSummedDoublets.csv")
+#write.csv(averageAndSum_all,"/Volumes/fsmresfiles/Basic_Sciences/CDB/GoyalLab/People/MadelineMelzer/ZhangMelzerEtAl/data/charles/finalBenchmarking/averagedAndSummedDoublets.csv")
 
 
 
@@ -1194,6 +1239,89 @@ plot
 
 
 
+
+### plotting CALLS
+
+callsData = read.csv("/Volumes/fsmresfiles/Basic_Sciences/CDB/GoyalLab/People/MadelineMelzer/ZhangMelzerEtAl/data/charles/calls/calls.csv")
+
+### formatting for plotting
+callsData <- callsData %>%
+  mutate(id = sapply(strsplit(file_name, "/"), function(x) tail(x, 1)))
+
+callsData <- callsData %>% # Split 'id' column into multiple columns, ensure all parts are separated
+  separate(id, into = c("dataset", "sample", "exp_act_part"), sep = "___", extra = "merge") %>%
+  separate(exp_act_part, into = c("exp_part", "act_part"), sep = "__", extra = "merge")
+
+callsData <- callsData %>% # Extract numeric values for 'dbl_exp' and 'dbl_act', adjusting the regular expression for 'dbl_act'
+  mutate(dbl_exp = as.numeric(gsub("exp_([0-9.]+).*", "\\1", exp_part)),
+         dbl_act = as.numeric(gsub("act_([0-9.]+).*", "\\1", act_part)))
+callsData <- callsData %>% select(-exp_part, -act_part) # Drop the intermediate columns
+
+callsData <- callsData %>%
+  mutate(tool = ifelse(grepl("DoubletFinder", file_name), "DoubletFinder",
+                       ifelse(grepl("hybrid", file_name), "hybrid",
+                              ifelse(grepl("scDblFinder", file_name), "scDblFinder",
+                                     ifelse(grepl("Scrublet", file_name), "Scrublet", NA)))))
+
+callsData = callsData %>% mutate(dbl_act = 0.08) #Scrublet's parse differently and the dbl_act is always 0.08 for this dataset
+
+### filtering so we only plot relevant samples
+
+calls_formatted = callsData %>% 
+  filter(dataset != "smartseq3")  %>%  #this is not reads or umis, it is trash
+  filter(dataset != "smartseq3_reads")  %>% 
+  filter(dataset != "smartseq3_umis")  %>% 
+  filter(
+    !(
+      (dataset == "SPLINTR" & sample %in% c("inVitro_KRAS", "retransplant")) |
+        (dataset == "LARRY" & sample %in% c("d4_nBC", "d4_R_4")) |
+        (dataset == "TREX" & sample == "brain1")
+    )
+  ) %>%
+  dplyr::rename(condition = tool) %>%
+  mutate(condition = str_replace(condition, "DoubletFinder", "DoubletFinder"),
+         condition = str_replace(condition, "Scrublet", "Scrublet"),
+         condition = str_replace(condition, "scDblFinder", "scDblFinder"),
+         condition = as.factor(condition))
+
+
+calls_formatted = calls_formatted %>% mutate(pecrcent_doublet_calls = tool_doublet_count / total_count)
+
+#write.csv(calls_formatted, "/Volumes/fsmresfiles/Basic_Sciences/CDB/GoyalLab/People/MadelineMelzer/ZhangMelzerEtAl/data/charles/finalBenchmarking/calls_barcoded_averageDoublets.csv")
+
+calls_oneExp = calls_formatted %>% filter(dbl_exp == 0.08)
+
+calls_summary <- calls_oneExp %>% group_by(dataset, condition) %>% summarise(sdCalls = sd(pecrcent_doublet_calls), avgCalls = mean(pecrcent_doublet_calls))
+
+calls_plot <- left_join(calls_oneExp, calls_summary, by = c("dataset", "condition"))
+
+calls_plot$dataset <- factor(calls_plot$dataset, levels = barcodedDatasets)
+
+calls_plot <- calls_plot %>%
+  mutate(dataset = recode(dataset, !!!barcodedRename))
+
+#write.csv(calls_plot, "/Volumes/fsmresfiles/Basic_Sciences/CDB/GoyalLab/People/MadelineMelzer/ZhangMelzerEtAl/data/charles/finalBenchmarking/calls_barcoded_averageDoublets_0.08.csv")
+
+plot <- ggplot(calls_plot, aes(x = dataset, y = pecrcent_doublet_calls, fill = condition)) + # Keep 'auroc' here if it's a column name in your data
+  geom_boxplot(aes(fill = condition), color = NA, alpha = 0.3, position = 'dodge') +
+  geom_pointrange(aes(x = dataset, y =avgCalls, ymin = avgCalls-sdCalls, ymax = avgCalls+sdCalls, color = condition),
+                  position = position_dodge(width = 0.75), size = 0.2, shape = 16) +
+  scale_x_discrete() +
+  scale_color_manual(values = palette) + 
+  scale_fill_manual(values = palette) +
+  theme_classic() + 
+  #scale_y_continuous(limits = c(0, 0.4)) +
+  geom_hline(yintercept = 0.08, linetype = "dashed", color = "black") + # Adds a horizontal line at y = 0.08
+  #geom_hline(yintercept = 0.0, linetype = "solid", color = "black") +
+  ylab("") +
+  xlab("") +
+  theme(legend.position = "none",
+        legend.box = "horizontal",
+        axis.text.x = element_text(angle = 45, hjust = 1))
+plot
+
+ggsave(plot, filename = paste0(plotDirectory, 'benchmarkingResults_barcoded_calls_0.08.svg'), width = 7, height = 4)
+ggsave(plot, filename = paste0(plotDirectory, 'benchmarkingResults_barcoded_calls_0.08.png'), width = 7, height = 4)
 
 
 
@@ -1341,7 +1469,7 @@ print(dataset_sample_counts)
 
 allBenchmarking_final = bind_rows(data, filtered_data, doubletDetectionMethod_data_new)
 
-write_csv(allBenchmarking_final, )
+#write_csv(allBenchmarking_final, )
 
 
 ### all barcoded datasets
@@ -1459,7 +1587,7 @@ doubletDetectionMethod_data_new <- map_dfr(subfolders, ~{
 
 allBenchmarking_final = bind_rows(data, filtered_data, doubletDetectionMethod_data_new)
 
-write_csv(allBenchmarking_final, )
+#write_csv(allBenchmarking_final, )
 
 
 ################################
@@ -1493,8 +1621,8 @@ plot = ggplot(benchmarkingData_plot, aes(x = dataset, y = auprc, fill = conditio
         axis.text.x = element_text(angle = 45, hjust = 1))
 plot
 
-ggsave(plot, file = paste0(plotDirectory, 'benchmarkingResults_allDatasets_AUPRC.svg'), width = 7, height = 4)
-ggsave(plot, file = paste0(plotDirectory, 'benchmarkingResults_allDatasets_AUPRC.png'), width = 7, height = 4)
+#ggsave(plot, file = paste0(plotDirectory, 'benchmarkingResults_allDatasets_AUPRC.svg'), width = 7, height = 4)
+#ggsave(plot, file = paste0(plotDirectory, 'benchmarkingResults_allDatasets_AUPRC.png'), width = 7, height = 4)
 
 ################################
 #                              #
@@ -1529,8 +1657,8 @@ plot = ggplot(benchmarkingData_plot, aes(x = dataset, y = auroc, fill = conditio
 plot
 
 
-ggsave(plot, file = paste0(plotDirectory, 'benchmarkingResults_allDatasets_AUROC.svg'), width = 7, height = 4)
-ggsave(plot, file = paste0(plotDirectory, 'benchmarkingResults_allDatasets_AUROC.png'), width = 7, height = 4)
+#ggsave(plot, file = paste0(plotDirectory, 'benchmarkingResults_allDatasets_AUROC.svg'), width = 7, height = 4)
+#ggsave(plot, file = paste0(plotDirectory, 'benchmarkingResults_allDatasets_AUROC.png'), width = 7, height = 4)
 
 
 
@@ -1628,7 +1756,7 @@ doubletDetectionMethod_data_new <- map_dfr(subfolders, ~{
 
 allBenchmarking_final = bind_rows(data, filtered_data, doubletDetectionMethod_data_new)
 
-write_csv(allBenchmarking_final, )
+#write_csv(allBenchmarking_final, )
 
 
 ################################
@@ -1662,8 +1790,8 @@ plot = ggplot(benchmarkingData_plot, aes(x = dataset, y = auprc, fill = conditio
         axis.text.x = element_text(angle = 45, hjust = 1))
 plot
 
-ggsave(plot, file = paste0(plotDirectory, 'benchmarkingResults_allDatasets_AUPRC.svg'), width = 7, height = 4)
-ggsave(plot, file = paste0(plotDirectory, 'benchmarkingResults_allDatasets_AUPRC.png'), width = 7, height = 4)
+#ggsave(plot, file = paste0(plotDirectory, 'benchmarkingResults_allDatasets_AUPRC.svg'), width = 7, height = 4)
+#ggsave(plot, file = paste0(plotDirectory, 'benchmarkingResults_allDatasets_AUPRC.png'), width = 7, height = 4)
 
 ################################
 #                              #
@@ -1698,8 +1826,8 @@ plot = ggplot(benchmarkingData_plot, aes(x = dataset, y = auroc, fill = conditio
 plot
 
 
-ggsave(plot, file = paste0(plotDirectory, 'benchmarkingResults_allDatasets_AUROC.svg'), width = 7, height = 4)
-ggsave(plot, file = paste0(plotDirectory, 'benchmarkingResults_allDatasets_AUROC.png'), width = 7, height = 4)
+#ggsave(plot, file = paste0(plotDirectory, 'benchmarkingResults_allDatasets_AUROC.svg'), width = 7, height = 4)
+#ggsave(plot, file = paste0(plotDirectory, 'benchmarkingResults_allDatasets_AUROC.png'), width = 7, height = 4)
 
 
 ################################
@@ -1745,8 +1873,8 @@ plot <- ggplot(benchmarkingData_formatted, aes(x = isBarcoded, y = auprc, fill =
   theme(legend.position = "none")
 plot
 
-ggsave(plot, file = paste0(plotDirectory, 'benchmarkingResults_barcodedNonBarcoded_AUPRC.svg'), width = 5, height = 4)
-ggsave(plot, file = paste0(plotDirectory, 'benchmarkingResults_barcodedNonBarcoded_AUPRC.png'), width = 5, height = 4)
+#ggsave(plot, file = paste0(plotDirectory, 'benchmarkingResults_barcodedNonBarcoded_AUPRC.svg'), width = 5, height = 4)
+#ggsave(plot, file = paste0(plotDirectory, 'benchmarkingResults_barcodedNonBarcoded_AUPRC.png'), width = 5, height = 4)
 
 
 ### AUROC
@@ -1773,8 +1901,8 @@ plot <- ggplot(benchmarkingData_formatted, aes(x = isBarcoded, y = auroc, fill =
   theme(legend.position = "none")
 plot
 
-ggsave(plot, file = paste0(plotDirectory, 'benchmarkingResults_barcodedNonBarcoded_AUROC.svg'), width = 5, height = 4)
-ggsave(plot, file = paste0(plotDirectory, 'benchmarkingResults_barcodedNonBarcoded_AUROC.png'), width = 5, height = 4)
+#ggsave(plot, file = paste0(plotDirectory, 'benchmarkingResults_barcodedNonBarcoded_AUROC.svg'), width = 5, height = 4)
+#ggsave(plot, file = paste0(plotDirectory, 'benchmarkingResults_barcodedNonBarcoded_AUROC.png'), width = 5, height = 4)
 
 
 
