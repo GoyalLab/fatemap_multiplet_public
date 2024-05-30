@@ -8,17 +8,19 @@ library(ggplot2)
 library(DelayedMatrixStats)
 library(igraph)
 library(tradeSeq)
-
-inputDirectoryAll <- "~/Keerthana/CellTrajectory/"
+#Need matrix version 1.1
+library(matrixStats)
+inputDirectoryAll <- "~/Keerthana/singletCode/CellTrajectory/"
 plotPNG <- "~/Keerthana/CellTrajectory/Plots/"
 alreadyRun <- c("FM01", "FM02", "FM03", "FM04", "FM05",
                 "FM06", "FM08",  "Biorxiv", "cellTag",
                 "ClonMapper", "LARRY", "non_cancer", "smartseq3_umis", "watermelon")
 not_run <- c("smartseq3_reads", "TREX")
+to_run <- c("FM04")
 experimentID <- c("TREX")
 samples <- c("control","ten", "twenty", "forty")
 
-for (experimentID in not_run){
+for (experimentID in to_run){
   inputDirectory <- paste0(inputDirectoryAll, experimentID, "/data/")
   print(experimentID)
   for (sampleName in samples) {
@@ -27,7 +29,7 @@ for (experimentID in not_run){
     sample <- readRDS(dataPath)
     sample$clusterMod <- droplevels(sample$seurat_clusters)
     print("CP1")
-    reducedDimMatrix <- sample@reductions$pca@cell.embeddings[,1:5 ]
+    reducedDimMatrix <- sample@reductions$pca@cell.embeddings[,1:10 ]
     clusterList <- sample$clusterMod
     PCA <- as.data.frame(reducedDimMatrix)
     PCA$cluster <- as.vector(clusterList)
@@ -39,20 +41,20 @@ for (experimentID in not_run){
     print("CP3")
     curves <- getCurves(lineage)
     curvesPlot <- slingCurves(curves, as.df = TRUE)
-    write_csv(curvesPlot,file = paste0(inputDirectoryAll, "data/curvesPlot/", experimentID, "_", sampleName, ".csv") )
+    # write_csv(curvesPlot,file = paste0(inputDirectoryAll, "data/curvesPlot/", experimentID, "_", sampleName, ".csv") )
     PCA$cellID <- rownames(PCA)
     pseudoTime <- data.frame(curves@assays@data@listData$pseudotime)
-    write_csv(pseudoTime, file = paste0(inputDirectoryAll, "data/pseudotime/", experimentID, "_", sampleName, ".csv"))
+    # write_csv(pseudoTime, file = paste0(inputDirectoryAll, "data/pseudotime/", experimentID, "_", sampleName, ".csv"))
     cellWeights <- data.frame(curves@assays@data@listData$weights)
-    write_csv(cellWeights, file = paste0(inputDirectoryAll, "data/cellWeights/", experimentID, "_", sampleName, ".csv"))
+    # write_csv(cellWeights, file = paste0(inputDirectoryAll, "data/cellWeights/", experimentID, "_", sampleName, ".csv"))
     
     mst <- slingMST(lineage)
-    write_graph(mst, file = paste0(inputDirectoryAll, "lineageGraph/", experimentID, "_", sampleName, ".csv"))
-    write_csv(PCA, file = paste0(inputDirectoryAll, "data/PCA/", experimentID, "_", sampleName, ".csv"))
+    # write_graph(mst, file = paste0(inputDirectoryAll, "lineageGraph/", experimentID, "_", sampleName, ".csv"))
+    # write_csv(PCA, file = paste0(inputDirectoryAll, "data/PCA/", experimentID, "_", sampleName, ".csv"))
     
     lineages_txt <- sapply(lineage@metadata$lineages, function(x) paste(x, collapse = ", "))
     lineages_df <- data.frame(Lineage = lineages_txt, stringsAsFactors = FALSE)
-    write.csv(lineages_df, paste0(inputDirectoryAll, "lineageTrajectory/", experimentID, "_", sampleName, ".csv"), row.names = FALSE, quote = FALSE) # Fixed parentheses and arguments
+    # write.csv(lineages_df, paste0(inputDirectoryAll, "lineageTrajectory/", experimentID, "_", sampleName, ".csv"), row.names = FALSE, quote = FALSE) # Fixed parentheses and arguments
     
     plotDoublets <- ggplot(PCA, aes(x = PC_1, y = PC_2)) + # Assuming PC1, PC2 are correct column names
       geom_point(data = PCA[PCA$singlet == "singlet",], aes(x = PC_1, y = PC_2), color = "grey", alpha = 0.8) +
@@ -64,7 +66,7 @@ for (experimentID in not_run){
             panel.border = element_blank(),
             panel.grid.major = element_blank(),
             panel.grid.minor = element_blank())
-    plotDoublets
+    print(plotDoublets)
     plotClusters <- ggplot(PCA, aes(x = PC_1, y = PC_2)) + 
       geom_point(aes(color = factor(cluster)), alpha = 0.6) + 
       geom_path(data= curvesPlot %>% arrange(Order), aes(group = Lineage)) + 
@@ -76,15 +78,15 @@ for (experimentID in not_run){
             panel.grid.major = element_blank(),
             panel.grid.minor = element_blank())
     plotClusters
-    svglite(file = paste0(plotPNG, "doubletsSVG/", experimentID, "_", sampleName, "_doublets.svg"), width = 4, height = 6)
-    print(plotDoublets) # Use print to ensure plots are rendered in non-interactive sessions
-    dev.off()
+    # svglite(file = paste0(plotPNG, "doubletsSVG/", experimentID, "_", sampleName, "_doublets.svg"), width = 4, height = 6)
+    # print(plotDoublets) # Use print to ensure plots are rendered in non-interactive sessions
+    # dev.off()
     
     pngFilePathCluster <- paste0(plotPNG, "clusterPNG/", experimentID, "_", sampleName, "_cluster.png")
-    ggsave(plotClusters, file = pngFilePathCluster, width = 6, height = 4)
+    # ggsave(plotClusters, file = pngFilePathCluster, width = 6, height = 4)
     
     pngFilePathDoublets <- paste0(plotPNG, "doubletsPNG/", experimentID, "_", sampleName, "_doublets.png")
-    ggsave(plotDoublets, file = pngFilePathDoublets, width = 4, height = 6)
+    # ggsave(plotDoublets, file = pngFilePathDoublets, width = 4, height = 6)
   }
 }
 

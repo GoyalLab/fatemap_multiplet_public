@@ -11,7 +11,7 @@ library(PRROC)
 
 #BiocManager::install("scds")
 
-set.seed = 23
+set.seed(23)
 palette = c("scDblFinder" = "#b26c98", 
             "DoubletFinder" = "#feb325", 
             "Scrublet" = "#2474a9", 

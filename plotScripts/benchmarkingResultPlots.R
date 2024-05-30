@@ -1288,6 +1288,8 @@ calls_formatted = callsData %>%
 calls_formatted = calls_formatted %>% mutate(pecrcent_doublet_calls = tool_doublet_count / total_count)
 
 #write.csv(calls_formatted, "/Volumes/fsmresfiles/Basic_Sciences/CDB/GoyalLab/People/MadelineMelzer/ZhangMelzerEtAl/data/charles/finalBenchmarking/calls_barcoded_averageDoublets.csv")
+publicData_calls = read.csv("/Users/mem3579/Library/CloudStorage/GoogleDrive-madelinemelzer22@gmail.com/.shortcut-targets-by-id/1-D5WmOkOyy8I-wVx8VYZ-NDotfIYludl/ZhangMelzerEtAl/Revisions/plotData/benchmarking/calls_barcoded_averageDoublets.csv")
+calls_formatted = publicData_calls
 
 calls_oneExp = calls_formatted %>% filter(dbl_exp == 0.08)
 
@@ -1320,8 +1322,8 @@ plot <- ggplot(calls_plot, aes(x = dataset, y = pecrcent_doublet_calls, fill = c
         axis.text.x = element_text(angle = 45, hjust = 1))
 plot
 
-ggsave(plot, filename = paste0(plotDirectory, 'benchmarkingResults_barcoded_calls_0.08.svg'), width = 7, height = 4)
-ggsave(plot, filename = paste0(plotDirectory, 'benchmarkingResults_barcoded_calls_0.08.png'), width = 7, height = 4)
+#ggsave(plot, filename = paste0(plotDirectory, 'benchmarkingResults_barcoded_calls_0.08.svg'), width = 7, height = 4)
+#ggsave(plot, filename = paste0(plotDirectory, 'benchmarkingResults_barcoded_calls_0.08.png'), width = 7, height = 4)
 
 
 

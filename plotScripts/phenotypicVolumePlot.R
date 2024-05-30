@@ -195,7 +195,7 @@ dataRank <- scale_rank(data_plot)
 
 write.csv(dataRank, paste0(dataDirectory, "rankedPhenotypicVolumeForPlot.csv"))
 
-p <- ggplot(dataRank, aes(x = rank_E_distance)) +
+p <- ggplot(dataRank, aes(x = rank_PV)) +
   theme_classic() +
   labs(x = "PV Rank", y = "AUPRC Rank", title = "")
 

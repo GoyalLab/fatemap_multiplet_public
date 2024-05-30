@@ -72,7 +72,7 @@ LARRYWatermelonCellTag = read_csv("/Volumes/fsmresfiles/Basic_Sciences/CDB/Goyal
 WatermelonCellTag = LARRYWatermelonCellTag %>% filter(dataset %in% c("watermelon", "cellTag"))
 
 data = bind_rows(data, WatermelonCellTag)
-write.csv(data, paste0(dataset_dir, "combined/final/allDoubletRates_classifier.csv"))
+#write.csv(data, paste0(dataset_dir, "combined/final/allDoubletRates_classifier.csv"))
 
 # adding in results from other doublet detection
 id_mappings <- c("Biorxiv_2_DMSO_B" = "Biorxiv",
@@ -194,7 +194,7 @@ data_plot = data_formatted %>%
 
 data_plot_toSave = data_plot %>% select(-"...1", -"...2", -auroc.groups)
 
-write_csv(data_plot_toSave, paste0(dataset_dir, "combined/final/allClassifierData_formatted.csv")) #20240325
+#write_csv(data_plot_toSave, paste0(dataset_dir, "combined/final/allClassifierData_formatted.csv")) #20240325
 
 ## statistics 20240321
 
@@ -246,7 +246,8 @@ t.test(auroc_classifier, auroc_otherMethods, paired = FALSE) #t = 31.63, df = 37
 wilcox.test(auroc_classifier, auroc_scrambled, paired = FALSE) #t = 139.64, df = 187.48, p-value < 2.2e-16
 
 
-
+publicData_classifier = read.csv("/Users/mem3579/Library/CloudStorage/GoogleDrive-madelinemelzer22@gmail.com/.shortcut-targets-by-id/1-D5WmOkOyy8I-wVx8VYZ-NDotfIYludl/ZhangMelzerEtAl/Revisions/plotData/classifier/allClassifierData_formatted.csv")
+data_plot = publicData_classifier %>% select(-sdAuprc, -avgAuprc) %>% mutate(dataset = factor(dataset, levels = barcodedDatasets_fromPublicData))
 
 
 
@@ -270,8 +271,8 @@ plot = ggplot(data_plot, aes(x = dataset, y = auprc)) +
         legend.box = "horizontal",
         axis.text.x = element_text(angle = 45, hjust = 1))
 plot
-ggsave(plot, file = paste0(plot_directory, 'AUPRC_allDatasets.svg'), width = 4.5, height = 3)
-ggsave(plot, file = paste0(plot_directory, 'AUPRC_allDatasets.png'), width = 4.5, height = 3)
+#ggsave(plot, file = paste0(plot_directory, 'AUPRC_allDatasets.svg'), width = 4.5, height = 3)
+#ggsave(plot, file = paste0(plot_directory, 'AUPRC_allDatasets.png'), width = 4.5, height = 3)
 
 ### AUROC
 data_plot_summary = data_plot %>% group_by(dataset, condition) %>% summarise(sdAuroc = sd(auroc), avgAuroc = mean(auroc), auroc.groups = 'drop')
@@ -293,10 +294,12 @@ plot = ggplot(data_plot, aes(x = dataset, y = auroc)) +
         legend.box = "horizontal",
         axis.text.x = element_text(angle = 45, hjust = 1))
 plot
-ggsave(plot, file = paste0(plot_directory, 'AUROC_allDatasets.svg'), width = 4.5, height = 3)
-ggsave(plot, file = paste0(plot_directory, 'AUROC_allDatasets.png'), width = 4.5, height = 3)
+#ggsave(plot, file = paste0(plot_directory, 'AUROC_allDatasets.svg'), width = 4.5, height = 3)
+#ggsave(plot, file = paste0(plot_directory, 'AUROC_allDatasets.png'), width = 4.5, height = 3)
 
 ################################## allDatasets, in brief
+publicData_classifier = read.csv("/Users/mem3579/Library/CloudStorage/GoogleDrive-madelinemelzer22@gmail.com/.shortcut-targets-by-id/1-D5WmOkOyy8I-wVx8VYZ-NDotfIYludl/ZhangMelzerEtAl/Revisions/plotData/classifier/allClassifierData_formatted.csv")
+allData = publicData_classifier %>% select(-sdAuprc, -avgAuprc) %>% mutate(dataset = factor(dataset, levels = barcodedDatasets_fromPublicData))
 
 data_formatted <- allData %>%
   mutate(condition = str_replace(condition, ".*neg_control_doublets.*", "doublet control"),
@@ -310,7 +313,7 @@ data_formatted <- allData %>%
          condition = if_else(condition == as.character(dataset), "classifier", condition))
 
 data_plot = data_formatted %>% 
-  filter(dataset %in% barcoded) %>%
+  #filter(dataset %in% barcoded) %>%
   filter(condition %in% c("classifier", "scrambled", "otherMethods"))
 data_plot_summary = data_plot %>% group_by(condition) %>% summarise(sdAuprc = sd(auprc), avgAuprc = mean(auprc))
 data_plot <- left_join(data_plot, data_plot_summary, by = "condition")
@@ -329,12 +332,12 @@ plot = ggplot(data_plot, aes(x = condition, y = auprc)) +
         legend.box = "horizontal",
         axis.text.x = element_text(angle = 45, hjust = 1))
 plot
-ggsave(plot, file = paste0(plot_directory, 'AUPRC_allDatasets_sum.svg'), width = 3, height = 6)
-ggsave(plot, file = paste0(plot_directory, 'AUPRC_allDatasets_sum.png'), width = 3, height = 6)
+#ggsave(plot, file = paste0(plot_directory, 'AUPRC_allDatasets_sum.svg'), width = 3, height = 6)
+#ggsave(plot, file = paste0(plot_directory, 'AUPRC_allDatasets_sum.png'), width = 3, height = 6)
 
 
 data_plot = data_formatted %>% 
-  filter(dataset %in% barcoded) %>%
+  #filter(dataset %in% barcoded) %>%
   filter(condition %in% c("classifier", "scrambled", "otherMethods"))
 data_plot_summary = data_plot %>% group_by(condition) %>% summarise(sdAuroc = sd(auroc), avgAuroc = mean(auroc))
 data_plot <- left_join(data_plot, data_plot_summary, by = "condition")
@@ -353,8 +356,8 @@ plot = ggplot(data_plot, aes(x = condition, y = auroc)) +
         legend.box = "horizontal",
         axis.text.x = element_text(angle = 45, hjust = 1))
 plot
-ggsave(plot, file = paste0(plot_directory, 'AUROC_allDatasets_sum.svg'), width = 3, height = 6)
-ggsave(plot, file = paste0(plot_directory, 'AUROC_allDatasets_sum.png'), width = 3, height = 6)
+#ggsave(plot, file = paste0(plot_directory, 'AUROC_allDatasets_sum.svg'), width = 3, height = 6)
+#ggsave(plot, file = paste0(plot_directory, 'AUROC_allDatasets_sum.png'), width = 3, height = 6)
 
 
 
@@ -388,15 +391,18 @@ data <- files %>%
   })
 
 #write_csv(data, "/Volumes/fsmresfiles/Basic_Sciences/CDB/GoyalLab/People/MadelineMelzer/ZhangMelzerEtAl/data/classifier/results/datasetSummaries/variableDoubletRates/allClassifierVariableData.csv")
+publicData_variableClassifier = read.csv("/Users/mem3579/Library/CloudStorage/GoogleDrive-madelinemelzer22@gmail.com/.shortcut-targets-by-id/1-D5WmOkOyy8I-wVx8VYZ-NDotfIYludl/ZhangMelzerEtAl/Revisions/plotData/classifier/allClassifierVariableData.csv")
+data = publicData_variableClassifier
 
 id_mappings <- c("FM01_sample1" = "FM01")
 
 subfolders <- list.dirs("/Users/mem3579/quest/ZhangMelzerEtAl/data/detectionMethods/", recursive = FALSE)
 
-doubletDetectionMethod_data = read_csv("/Volumes/fsmresfiles/Basic_Sciences/CDB/GoyalLab/People/MadelineMelzer/ZhangMelzerEtAl/data/charles/finalBenchmarking/multiSampleCellIDResults/allBenchmarking.csv") %>% 
-  select(-"...1") %>% 
+doubletDetectionMethod_data = read_csv("/Users/mem3579/Library/CloudStorage/GoogleDrive-madelinemelzer22@gmail.com/.shortcut-targets-by-id/1-D5WmOkOyy8I-wVx8VYZ-NDotfIYludl/ZhangMelzerEtAl/Revisions/plotData/benchmarking/barcodedAllForPlot.csv") %>% 
+  #select(-"...1") %>% 
   filter(dataset %in% c("FM01")) %>%
   filter(sample %in% c("sample1"))
+
 
 doubletDetectionMethod_data_mutated = doubletDetectionMethod_data %>% mutate(dataset = dbl_act) %>% 
   mutate(dataset = as.character(dataset)) %>%
@@ -425,7 +431,6 @@ data <- data %>% mutate(dataset = as.character(dataset)) %>%
   select(dataset, condition, auprc, auroc)
 data_combined <- data %>% bind_rows(doubletDetectionMethod_data_mutated)
 #write_csv(data_combined, "/Volumes/fsmresfiles/Basic_Sciences/CDB/GoyalLab/People/MadelineMelzer/ZhangMelzerEtAl/data/classifier/results/datasetSummaries/variableDoubletRates/allVariableData.csv")
-
 data = data_combined
 
 data_formatted <- data %>%
@@ -463,8 +468,8 @@ plot <- ggplot(data_plot, aes(x = dataset, y = avgAuprc, group = condition, colo
   theme(legend.position = "none",
         legend.box = "horizontal")
 plot
-ggsave(plot, file = paste0(plot_directory, 'AUPRC_variableDoubletRates.svg'), width = 5, height = 4)
-ggsave(plot, file = paste0(plot_directory, 'AUPRC_variableDoubletRates.png'), width = 5, height = 4)
+#ggsave(plot, file = paste0(plot_directory, 'AUPRC_variableDoubletRates.svg'), width = 5, height = 4)
+#ggsave(plot, file = paste0(plot_directory, 'AUPRC_variableDoubletRates.png'), width = 5, height = 4)
 
 
 ### AUROC
@@ -487,8 +492,8 @@ plot <- ggplot(data_plot, aes(x = dataset, y = avgAuroc, group = condition, colo
   theme(legend.position = "none",
         legend.box = "horizontal")
 plot
-ggsave(plot, file = paste0(plot_directory, 'AUROC_variableDoubletRates.svg'), width = 5, height = 4)
-ggsave(plot, file = paste0(plot_directory, 'AUROC_variableDoubletRates.png'), width = 5, height = 4)
+#ggsave(plot, file = paste0(plot_directory, 'AUROC_variableDoubletRates.svg'), width = 5, height = 4)
+#ggsave(plot, file = paste0(plot_directory, 'AUROC_variableDoubletRates.png'), width = 5, height = 4)
 
 
 
@@ -498,9 +503,9 @@ dataset_dir = "/Users/mem3579/Library/CloudStorage/OneDrive-NorthwesternUniversi
 
 #note: for these files, the dataset is the dataset being classified, the condition is the dataset which the classifier was trained on.
 #ex. dataset sample2 and condition sample1 means the classifier trained on sample 1 is being used to classify sample2
-s1d = read_csv("/Users/mem3579/Library/CloudStorage/OneDrive-NorthwesternUniversity/Arispe and Goyal Labs/ZhangMelzerEtAl/data/classifier/results/datasetSummaries/s1s2/summary_s1_bothClassifiers.csv")
-s2d = read_csv("/Users/mem3579/Library/CloudStorage/OneDrive-NorthwesternUniversity/Arispe and Goyal Labs/ZhangMelzerEtAl/data/classifier/results/datasetSummaries/s1s2/summary_s2_bothClassifiers.csv")
-s1s2d = read_csv("/Users/mem3579/Library/CloudStorage/OneDrive-NorthwesternUniversity/Arispe and Goyal Labs/ZhangMelzerEtAl/data/classifier/results/datasetSummaries/s1s2/summary_s1s2_bothClassifiers.csv")
+s1d = read_csv("/Volumes/fsmresfiles/Basic_Sciences/CDB/GoyalLab/People/MadelineMelzer/ZhangMelzerEtAl/data/classifier/results/datasetSummaries/s1s2/summary_s1_bothClassifiers.csv")
+s2d = read_csv("/Volumes/fsmresfiles/Basic_Sciences/CDB/GoyalLab/People/MadelineMelzer/ZhangMelzerEtAl/data/classifier/results/datasetSummaries/s1s2/summary_s2_bothClassifiers.csv")
+s1s2d = read_csv("/Volumes/fsmresfiles/Basic_Sciences/CDB/GoyalLab/People/MadelineMelzer/ZhangMelzerEtAl/data/classifier/results/datasetSummaries/s1s2/summary_s1s2_bothClassifiers.csv")
 
 data = s1d %>% bind_rows(s2d)
 
@@ -531,8 +536,8 @@ doubletDetectionMethod_data <- map_dfr(subfolders, ~{
 
 data_combined <- data %>% bind_rows(doubletDetectionMethod_data)
 data = data_combined
-write_csv(data, "/Volumes/fsmresfiles/Basic_Sciences/CDB/GoyalLab/People/MadelineMelzer/ZhangMelzerEtAl/data/classifier/results/datasetSummaries/s1s2/alls1s2ForPlot.csv")
-data = read.csv("/Volumes/fsmresfiles/Basic_Sciences/CDB/GoyalLab/People/MadelineMelzer/ZhangMelzerEtAl/data/classifier/results/datasetSummaries/s1s2/alls1s2ForPlot.csv")
+#write_csv(data, "/Volumes/fsmresfiles/Basic_Sciences/CDB/GoyalLab/People/MadelineMelzer/ZhangMelzerEtAl/data/classifier/results/datasetSummaries/s1s2/alls1s2ForPlot.csv")
+data = read.csv("/Users/mem3579/Library/CloudStorage/GoogleDrive-madelinemelzer22@gmail.com/.shortcut-targets-by-id/1-D5WmOkOyy8I-wVx8VYZ-NDotfIYludl/ZhangMelzerEtAl/Revisions/plotData/classifier/alls1s2ForPlot_formatted.csv")
 
 # formatting and plotting
 data_formatted <- data %>%
@@ -548,7 +553,7 @@ data_formatted <- data %>%
          #condition = str_replace(condition, "sample2", "classifier"))
 
 
-write_csv(data_formatted, "/Volumes/fsmresfiles/Basic_Sciences/CDB/GoyalLab/People/MadelineMelzer/ZhangMelzerEtAl/data/classifier/results/datasetSummaries/s1s2/alls1s2ForPlot_formatted.csv") #20240325
+#write_csv(data_formatted, "/Volumes/fsmresfiles/Basic_Sciences/CDB/GoyalLab/People/MadelineMelzer/ZhangMelzerEtAl/data/classifier/results/datasetSummaries/s1s2/alls1s2ForPlot_formatted.csv") #20240325
 
 data_summary = data_formatted %>% group_by(condition) %>% summarise(sdAuprc = sd(auprc), avgAuprc = mean(auprc), auprc.groups = 'drop')
 data_joined <- left_join(data_formatted, data_summary, by = "condition")
@@ -565,8 +570,8 @@ plot = ggplot(data_plot, aes(x = dataset, y = auprc)) +
   theme(legend.position = "none",
         legend.box = "horizontal")
 plot
-ggsave(plot, file = paste0(plot_directory, 'AUPRC_sample1Sample2ClassifiersAndMethods.svg'), width = 6, height = 4)
-ggsave(plot, file = paste0(plot_directory, 'AUPRC_sample1Sample2ClassifiersAndMethods.png'), width = 6, height = 4)
+#ggsave(plot, file = paste0(plot_directory, 'AUPRC_sample1Sample2ClassifiersAndMethods.svg'), width = 6, height = 4)
+#ggsave(plot, file = paste0(plot_directory, 'AUPRC_sample1Sample2ClassifiersAndMethods.png'), width = 6, height = 4)
 
 ### with algorithms combined
 data_formatted <- data %>%
@@ -599,8 +604,8 @@ plot = ggplot(data_plot, aes(x = dataset, y = auprc)) +
   theme(legend.position = "none",
         legend.box = "horizontal")
 plot
-ggsave(plot, file = paste0(plot_directory, 'AUPRC_sample1Sample2ClassifiersAndMethods_sum.svg'), width = 3, height = 6)
-ggsave(plot, file = paste0(plot_directory, 'AUPRC_sample1Sample2ClassifiersAndMethods_sum.png'), width = 3, height = 6)
+#ggsave(plot, file = paste0(plot_directory, 'AUPRC_sample1Sample2ClassifiersAndMethods_sum.svg'), width = 3, height = 6)
+#ggsave(plot, file = paste0(plot_directory, 'AUPRC_sample1Sample2ClassifiersAndMethods_sum.png'), width = 3, height = 6)
 
 
 ### AUROC
@@ -620,8 +625,8 @@ plot = ggplot(data_plot, aes(x = dataset, y = auroc)) +
   theme(legend.position = "none",
         legend.box = "horizontal")
 plot
-ggsave(plot, file = paste0(plot_directory, 'AUROC_sample1Sample2ClassifiersAndMethods_sum.svg'), width = 3, height = 6)
-ggsave(plot, file = paste0(plot_directory, 'AUROC_sample1Sample2ClassifiersAndMethods_sum.png'), width = 3, height = 6)
+#ggsave(plot, file = paste0(plot_directory, 'AUROC_sample1Sample2ClassifiersAndMethods_sum.svg'), width = 3, height = 6)
+#ggsave(plot, file = paste0(plot_directory, 'AUROC_sample1Sample2ClassifiersAndMethods_sum.png'), width = 3, height = 6)
 
 
 
@@ -656,9 +661,10 @@ wilcox.test(auroc_classifier, auroc_otherMethods, paired = FALSE) #W = 9562, p-v
 
 ### for plotting more granular classifier data
 
-s1s2d = read_csv("/Users/mem3579/Library/CloudStorage/OneDrive-NorthwesternUniversity/Arispe and Goyal Labs/ZhangMelzerEtAl/data/classifier/results/datasetSummaries/s1s2/summary_s1s2_bothClassifiers.csv")
+s1s2d = read_csv("/Volumes/fsmresfiles/Basic_Sciences/CDB/GoyalLab/People/MadelineMelzer/ZhangMelzerEtAl/data/classifier/results/datasetSummaries/s1s2/summary_s1s2_bothClassifiers.csv")
 data_withBoth = data %>% bind_rows(s1s2d)
-
+#write.csv(data_withBoth, "/Volumes/fsmresfiles/Basic_Sciences/CDB/GoyalLab/People/MadelineMelzer/ZhangMelzerEtAl/data/classifier/results/datasetSummaries/s1s2/summary_s1s2_bothClassifiers_andSelf.csv")
+data_withBoth = read.csv("/Volumes/fsmresfiles/Basic_Sciences/CDB/GoyalLab/People/MadelineMelzer/ZhangMelzerEtAl/data/classifier/results/datasetSummaries/s1s2/summary_s1s2_bothClassifiers_andSelf.csv")
 data_formatted <- data_withBoth %>%
   mutate(condition = str_replace(condition, ".*neg_control_doublets.*", "doublet control"),
          condition = str_replace(condition, ".*neg_control_singlets.*", "singlet control"),
@@ -671,13 +677,13 @@ data_formatted <- data_withBoth %>%
   select(-"best_params")
 
 
-data_summary = data_formatted %>% group_by(dataset, condition) %>% summarise(sdAuprc = sd(auprc), avgAuprc = mean(auprc))
+data_summary = data_formatted %>% group_by(dataset, condition) %>% summarise(sdAuroc = sd(auroc), avgAuroc = mean(auroc))
 data_joined <- left_join(data_formatted, data_summary, by = c("dataset", "condition"))
 data_plot = data_joined %>% filter(condition %in% c("sample1", "sample2"))
 sample_palette = c("sample1" = "#00888d", "sample2" = "#ff87a9")
-plot = ggplot(data_plot, aes(x = dataset, y = auprc)) +
-  geom_jitter(data = data_plot, aes(x=dataset, y=auprc, color = condition),size=1.5, shape = 16, height = 0.01) +
-  geom_pointrange(data = data_plot, aes(x = dataset, y =avgAuprc, ymin = avgAuprc-sdAuprc, ymax = avgAuprc+sdAuprc, fill = condition), size = 1) +
+plot = ggplot(data_plot, aes(x = dataset, y = auroc)) +
+  geom_jitter(data = data_plot, aes(x=dataset, y=auroc, color = condition),size=1.5, shape = 16, height = 0.01) +
+  geom_pointrange(data = data_plot, aes(x = dataset, y =avgAuroc, ymin = avgAuroc-sdAuroc, ymax = avgAuroc+sdAuroc, fill = condition), size = 1) +
   scale_color_manual(values = sample_palette) + 
   scale_fill_manual(values = sample_palette) +
   theme_classic() + 
@@ -735,8 +741,8 @@ plot = ggplot(data_plot, aes(x = condition, y = auprc)) +
         legend.box = "horizontal",
         axis.text.x = element_text(angle = 45, hjust = 1))
 plot
-ggsave(plot, file = paste0(plot_directory, 'classifierControls_AUPRC.svg'), width = 8, height = 6)
-ggsave(plot, file = paste0(plot_directory, 'classifierControls_AUPRC.png'), width = 8, height = 6)
+#ggsave(plot, file = paste0(plot_directory, 'classifierControls_AUPRC.svg'), width = 8, height = 6)
+#ggsave(plot, file = paste0(plot_directory, 'classifierControls_AUPRC.png'), width = 8, height = 6)
 
 
 
@@ -762,8 +768,8 @@ plot = ggplot(data_plot, aes(x = condition, y = auroc)) +
         legend.box = "horizontal",
         axis.text.x = element_text(angle = 45, hjust = 1))
 plot
-ggsave(plot, file = paste0(plot_directory, 'classifierControls_AUROC.svg'), width = 8, height = 6)
-ggsave(plot, file = paste0(plot_directory, 'classifierControls_AUROC.png'), width = 8, height = 6)
+#ggsave(plot, file = paste0(plot_directory, 'classifierControls_AUROC.svg'), width = 8, height = 6)
+#ggsave(plot, file = paste0(plot_directory, 'classifierControls_AUROC.png'), width = 8, height = 6)
 
 
 
