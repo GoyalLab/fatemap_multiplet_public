@@ -9,6 +9,8 @@ extractGini.R - performs the analyses and outputs a .tsv of the Gini values
 plotGini.R - reads in the Gini .tsv file to make plots and runs simulations for example distributions 
 to create plots for them to.
 
+Gini coefficient values can differ slightly based on the cluster assignment, without altering any of the conclusions.
+
 Of note when these scripts were run the folder structure looked like below:
 
 <img width="424" alt="image" src="https://github.com/GoyalLab/fatemap_multiplet_public/assets/9827466/1f6e2cbc-cba8-47cf-8dc6-500f0552260e">

@@ -1,5 +1,5 @@
 Guide to plots folder- Zhang, Melzer et al. 2024
-Created by MEM on 20240529
+Created by MEM on 20240531
 
 The majority of scripts used to make plots are in the plotScripts folder of the fatemap_multiplet_public github, unless stated otherwise: https://github.com/GoyalLab/fatemap_multiplet_public 
 The .csv files used to make these plots are in the plotData folder of the singletCode figshare: https://doi.org/10.6084/m9.figshare.25478680   
@@ -16,7 +16,7 @@ Figure 1E:
   
 Figure 1F: 
   data: plotData/cellType/singlets_by_category_pct.csv
-  plotScript: visualization/barplot_celltype.R
+  plotScript: visualization/barplot_celltype.R, lines 61-66
   
 Figure 1G: 
   data: plotData/totalSingletNumbers/newCompiledNumbers.csv

@@ -1,5 +1,5 @@
 #Neighbor Analysis for Barcode Multiplet Project
-#Last updated 20230707 by Madeline E Melzer
+#Last updated 20240531 by Madeline E Melzer
 
 ### load libraries
 
@@ -384,3 +384,6 @@ plot = ggplot(allControls, aes(x = typeA, y = as.numeric(value))) +
   geom_pointrange(aes(ymin = value - sd, ymax = value + sd, color = "black"), size = 1, color = "black", position = position_dodge(width = 0.5), data = allControls.summary) + #keeping data.summary for non-subsampled points!
   theme(legend.position = "none", strip.background = element_blank(),strip.text.x = element_blank())
 ggsave(plot, file = paste0(plotDirectory, 'FM01_sample3_biasControl.svg'), width = 4, height = 4) #### RENAME
+
+
+### note average neighbor distance values can differ slightly based on the subsampling, without altering any of the conclusions.
