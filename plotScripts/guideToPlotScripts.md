@@ -255,7 +255,8 @@ Figure S15:
   plotScript: functional_analysis/CellTrajectory/SlingShot2.R
   
 Figure S16:
-  plotScript: classifier/testingClassifier.ipynb
+  data = plotData/classifier/hyperparameters_sample1_sample2_s1s2.csv
+  plotScript: classifier/testingClassifier.ipynb, cell titled "PLOTTING HYPERPARAMETERS"
   
 Figure S17A:
   data: plotData/classifier/summary_s1s2_bothClassifiers_andSelf.csv
