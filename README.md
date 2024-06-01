@@ -11,6 +11,9 @@ This folder contains various analysis scripts used throughout the paper. Some ke
 - `otherBarcodingMethods`: scripts to adapt data from other barcoding technologies to have singlets identified with singletCode.
 - `cellTypeAnnotation`: scripts to annotate cell type.
 - `cellCount`: scripts to process data according to the original publications for the purpose of comparing cell numbers at different stages of processing, including singlet recovery.
+- 'classifier': scripts related to the classifier training and assessment
+- 'giniAnalysisKK': scripts related to the gini analysis
+- 'neighborAnalysis': scripts related to the neighbor analysis
   
 # Data Structure
 
