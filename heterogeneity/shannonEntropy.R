@@ -8,16 +8,12 @@ library(sctransform)
 library(DropletUtils)
 library(glue)
 library(umap)
-library(scperturbR)
 library(vegan)
-library(SingleCellExperiment)
 library(ggpubr)
 library(permute)
 options(future.globals.maxSize = 4000 * 1024^2)
 
 set.seed = 23
-
-shannonEntropyResultsDirectory = "/Volumes/fsmresfiles/Basic_Sciences/CDB/GoyalLab/People/MadelineMelzer/ZhangMelzerEtAl/data/heterogeneity/shannonEntropy"
 
 datasets = c("FM01", 
              "FM02", 
@@ -46,10 +42,9 @@ shannonEntropy <- data.frame()
 singletObjectsDirectory = "/projects/b1042/GoyalLab/melzer/ZhangMelzerEtAl/singletObjects/subsampledSingletObjects"
 singletFiles <- list.files(singletObjectsDirectory, pattern = "\\.rds$", full.names = TRUE)
 
-qualifiedPairs_subset = qualifiedPairs %>% filter(dataset %in% c("SPLINTR", "TREX", "watermelon"))
-
 for(filepath in singletFiles) {
   # Extract dataset and sample from the file name
+  print(filepath)
   parts <- strsplit(basename(filepath), "__")[[1]]
   dataset <- parts[1]
   sample <- gsub("_subsampledSinglets\\.rds$", "", parts[2])
@@ -75,6 +70,10 @@ for(filepath in singletFiles) {
     shuffled_matrix <- matrix(shuffled_counts, ncol = 1)
     shannon_diversity_shuffled <- diversity(shuffled_matrix, index = "shannon")
     
+    ### uniform cluster distribution as a control (maximum equitability)
+    uniform_counts <- rep(1, numClusters)
+    shannon_diversity_uniform <- diversity(matrix(uniform_counts, ncol = 1), index = "shannon")
+    
     temp_df <- data.frame(
       dataset = dataset,
       sample = sample,
@@ -82,12 +81,12 @@ for(filepath in singletFiles) {
       numClusters = numClusters,
       clusterDiversity = shannon_diversity_cluster,
       shuffledDiversity = shannon_diversity_shuffled,
-      uniformDiversity = 
+      uniformDiversity = shannon_diversity_uniform
     )
     shannonEntropy <- rbind(shannonEntropy, temp_df)
   }
 }
 
-#write_csv(shannonEntropy, "~/ZhangMelzerEtAl/data/shannonEntropy/shannonEntropy.csv")
+write_csv(shannonEntropy, "~/ZhangMelzerEtAl/data/shannonEntropy/shannonEntropy_2.csv")
 
 

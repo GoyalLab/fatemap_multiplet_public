@@ -1,6 +1,7 @@
 ### exteacting the singlets identified by each doublet detection method for Zhang, Melzer et al 2024
 ### Created by Madeline E Melzer on 20240211
-### Last edited by Madeline E Melzer on 20240211
+### Last edited by Madeline E Melzer on 20240316
+# last edit was to get all of the act_0.08 data so that Charles can use it for TNR
 
 library(tidyverse)
 library(ggplot2)
@@ -10,11 +11,12 @@ library(readr)
 options(future.globals.maxSize = 4000 * 1024^2)
 
 doubletObjectsDirectory = "/projects/b1042/GoyalLab/zzhang/doublet_objects"
-doubletInfoDirectory = "~/ZhangMelzerEtAl/data/doubletInfo"
+doubletInfoDirectory = "~/ZhangMelzerEtAl/data/doubletInfo0.08act"
 
 ##########################################################################################################################
 # doublet_finder
 ##########################################################################################################################
+
 detectionMethod = "doublet_finder"
 dblMethodPath <- file.path(doubletObjectsDirectory, detectionMethod)
 # Get the list of dbl_act directories
@@ -31,13 +33,15 @@ for (dbl_act in dblActs) {
   for (file in rdsFiles) {
     filename <- basename(file)
     filename <- tools::file_path_sans_ext(filename)
-    seuratObject = readRDS(file)
-    
-    metadata <- seuratObject@meta.data %>%
-      rownames_to_column("cellID") %>%
-      select(cellID, nCount_RNA, nFeature_RNA, label, contains("pAnn"), contains("DF.classifications"))
-    
-    write_csv(metadata, file = glue("{doubletInfoDirectory}/{detectionMethod}/{filename}___doubletData.csv"))
+    if (grepl("exp_([0-9]+(?:\\.[0-9]+)?)__act_0\\.08\\b", filename)) {
+      seuratObject = readRDS(file)
+      
+      metadata <- seuratObject@meta.data %>%
+        rownames_to_column("cellID") %>%
+        select(cellID, nCount_RNA, nFeature_RNA, label, contains("pAnn"), contains("DF.classifications"))
+      
+      write_csv(metadata, file = glue("~/ZhangMelzerEtAl/data/doubletInfo_0.08act/{detectionMethod}/{filename}___doubletData.csv"))
+    }
   }
 }
 
@@ -62,14 +66,14 @@ for (dbl_act in dblActs) {
     filename <- basename(file)
     filename <- tools::file_path_sans_ext(filename)
     
-    if (grepl("exp_([0-9.]+)__act_\\1", filename)) {
+    if (grepl("exp_([0-9]+(?:\\.[0-9]+)?)__act_0\\.08\\b", filename)) {
       sce = readRDS(file)
       
       metadata <- as.data.frame(colData(sce)) %>%
         rownames_to_column("cellID") %>%
         select(cellID, nCount_RNA, nFeature_RNA, label, scDblFinder.class, scDblFinder.score, scDblFinder.weighted, scDblFinder.cxds_score)
       
-      write_csv(metadata, file = glue("{doubletInfoDirectory}/{detectionMethod}/{filename}___doubletData.csv"))
+      write_csv(metadata, file = glue("~/ZhangMelzerEtAl/data/doubletInfo_0.08act/{detectionMethod}/{filename}___doubletData.csv"))
     }
   }
 }
@@ -95,31 +99,32 @@ for (dbl_act in dblActs) {
     filename <- basename(file)
     filename <- tools::file_path_sans_ext(filename)
     
-    if (grepl("exp_([0-9.]+)__act_\\1", filename)) {
+    if (grepl("exp_([0-9]+(?:\\.[0-9]+)?)__act_0\\.08\\b", filename)) {
       sce = readRDS(file)
       
-      methods <- c("hybrid", "cxds", "bcds")
-      for (method in methods) {
-        fg <- score[score$label == "doublet", paste0(method, "_score")]
-        bg <- score[score$label == "singlet", paste0(method, "_score")]
-      }
       metadata <- as.data.frame(colData(sce)) %>%
         rownames_to_column("cellID") %>%
-        select(cellID, nCount_RNA, nFeature_RNA, label, hybrid_score, scDblFinder.score, scDblFinder.weighted, scDblFinder.cxds_score)
+        select(cellID, nCount_RNA, nFeature_RNA, label, hybrid_score, hybrid_call, cxds_score, cxds_call, bcds_score, bcds_call)
       
-      write_csv(metadata, file = glue("{doubletInfoDirectory}/{detectionMethod}/{filename}___doubletData.csv"))
+      write_csv(metadata, file = glue("~/ZhangMelzerEtAl/data/doubletInfo_0.08act/{detectionMethod}/{filename}___doubletData.csv"))
     }
   }
 }
+
+
+
+
+
 
 
 ##########################################################################################################################
 # scrublet (do not need because already .csv files)
 ##########################################################################################################################
 
+rds = readRDS("/projects/b1042/GoyalLab/zzhang/doublet_objects/scDblFinder/act__0.1/Biorxiv___1_DMSO_A___exp_0.1__act_0.1.rds")
+nrow(colData(rds))
 
-
-
+file = "/projects/b1042/GoyalLab/zzhang/doublet_objects/doublet_finder/act__0.1/Biorxiv___1_DMSO_A___exp_0.1__act_0.1.rds"
 
 ### testing i think 
 doubletFinder = readRDS("/Volumes/fsmresfiles/Basic_Sciences/CDB/GoyalLab/People/MadelineMelzer/ZhangMelzerEtAl/data/doublet_objects/doublet_finder/act__0.1/Biorxiv___1_DMSO_A___exp_0.1__act_0.1.rds")

@@ -267,33 +267,33 @@ Figure S17B:
   plotScript: classifierPlots.R, lines 667-695
   
 Figure S17C:
-  data: plotData/classifier/crossExperiment/
-  plotScript: classifierCrossExperimentPlots.R, lines 602-614, 749-775 
+  data: plotData/classifier/crossExperiment/allCellTypeClassifiersScrambledResults.csv, allCellTypeClassifiersScrambledClassifierResults.csv
+  plotScript: classifierCrossExperimentPlots.R, lines 602-614, 682-694
   
 Figure S17D:
-  data: plotData/classifier/crossExperiment/
-  plotScript: classifierCrossExperimentPlots.R, lines 619-628, 749-775
+  data: plotData/classifier/crossExperiment/allCellTypeClassifiersScrambledResults.csv, allCellTypeClassifiersScrambledClassifierResults.csv
+  plotScript: classifierCrossExperimentPlots.R, lines 619-628, 696-706
   
 Figure S17E:
-  data: plotData/classifier/crossExperiment/
-  plotScript: classifierCrossExperimentPlots.R, lines 290-307
+  data: plotData/classifier/crossExperiment/allCrossExperimentClassifiersAndDDMResults.csv
+  plotScript: classifierCrossExperimentPlots.R, lines 290-307, 
   
 Figure S17F:
-  data: plotData/classifier/crossExperiment/
+  data: plotData/classifier/crossExperiment/allCrossExperimentClassifiersAndDDMResults.csv
   plotScript: classifierCrossExperimentPlots.R, lines 312-321
 
 Figure S17G:
-  data: plotData/classifier/crossExperiment/
+  data: plotData/classifier/crossExperiment/allCrossExperimentClassifiersAndDDMResults.csv
   plotScript: classifierCrossExperimentPlots.R, lines 329-341
   
 Figure S17H:
-  data: plotData/classifier/crossExperiment/
+  data: plotData/classifier/crossExperiment/allCrossExperimentClassifiersAndDDMResults.csv
   plotScript: classifierCrossExperimentPlots.R, lines 346-355
   
 Figure S17I:
-  data: plotData/classifier/crossExperiment/
-  plotScript: classifierCrossExperimentPlots.R, lines 680-692, 819-831
+  data: plotData/classifier/crossExperiment/allHumanMouseClassifiersScrambledResults.csv, allHumanMouseClassifiersScrambledClassifierResults.csv
+  plotScript: classifierCrossExperimentPlots.R, lines 749-761, 819-831
   
 Figure S17J:
-  data: plotData/classifier/crossExperiment/
-  plotScript: classifierCrossExperimentPlots.R, lines 697-706, 836-845
+  data: plotData/classifier/crossExperiment/allHumanMouseClassifiersScrambledResults.csv, allHumanMouseClassifiersScrambledClassifierResults.csv
+  plotScript: classifierCrossExperimentPlots.R, lines 762-775, 836-845
