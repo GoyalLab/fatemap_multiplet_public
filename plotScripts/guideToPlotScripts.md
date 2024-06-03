@@ -41,10 +41,14 @@ Figure 2C:
 Figure 2D: 
   data: plotData/benchmarking/barcodedNonBarcoded_AUPRC_AUROC_TNR.csv
   plotScript: benchmarkingResultPlots.R, lines 20-43, AUPRC: 430-455, AUROC: 463-483
-
+  
 Figure 2E: 
-  data: plotData/averagedAndSummedDoublets.csv
-  plotScript: heterogeneityCloseDistant.R, lines 205-232
+  data: plotData/benchmarking/barcodedNonBarcoded_AUPRC_AUROC_TNR.csv
+  plotScript: benchmarkingResultPlots.R, 
+  
+Figure 2F: 
+  data: plotData/benchmarking/barcodedNonBarcoded_AUPRC_AUROC_TNR.csv
+  plotScript: benchmarkingResultPlots.R, lines 20-43, 596-620
   
 Figure 3A, phenotypic volume:
   data: plotData/acrossSampleHeterogeneity/rankedPhenotypicVolumeForPlot.csv
@@ -73,6 +77,14 @@ Figure 3C:
 Figure 3D:
   data: plotData/heterogenityAnalysis/all.tsv
   plotScript: heterogeneityCloseDistant.R, lines 110-120
+  
+Figure 3E: 
+  data: plotData/averagedAndSummedDoublets.csv
+  plotScript: heterogeneityCloseDistant.R, lines 205-232
+
+Figure 3F:
+  data: plotData/averagedAndSummedDoublets
+  plotScript: heterogeneityCloseDistant.R, lines 205-221, 235-244
 
 Figure 4A:
   data: plotData/similarityScore/mean_similarityMatrix.csv
@@ -105,14 +117,14 @@ Figure 4H:
 Figure 5B:
   data: plotData/differentialExpression/de.csv
   plotScript: differentialExpressionPlot.R
-  
-Figure 5C:
-  data: plotData/clusteringStability/resultsclusteringStability_Louvain_allDatasets.csv
-  plotScript: clusteringStabilityPlot.R, lines 76-102, 114-127
 
-Figure 5D:
+Figure 5C:
   data: plotData/cellCommunication/cc_formatted.csv
   plotScript: cellChatPlot.R
+
+Figure 5D:
+  data: plotData/clusteringStability/resultsclusteringStability_Louvain_allDatasets.csv
+  plotScript: clusteringStabilityPlot.R, lines 76-102, 114-127
   
 Figure 5E:
   plotScript: functional_analysis/CellTrajectory/SlingShot2.R
@@ -183,13 +195,9 @@ Figure S7C:
   data: plotData/heatmap/
   plotScript: vizualization/heatmap.py
 
-Figure S8A: 
+Figure S8: 
   data: plotData/benchmarking/barcodedNonBarcoded_AUPRC_AUROC_TNR.csv
   plotScript: benchmarkingResultPlots.R, lines 20-43, AUPRC: 491-528, AUROC: 491-503, 536-556
-  
-Figure S8B: 
-  data: plotData/benchmarking/barcodedNonBarcoded_AUPRC_AUROC_TNR.csv
-  plotScript: benchmarkingResultPlots.R, lines 20-43, 596-620
   
 Figure S9A, phenotypic volume:
   data: plotData/acrossSampleHeterogeneity/rankedPhenotypicVolumeForPlot_AUPRC.csv
@@ -223,11 +231,7 @@ Figure S10C:
   data: plotData/averagedAndSummedDoublets/TNR_plotted_formatted_sum.csv
   plotScript: benchmarkingResultPlots.R, lines 20-43, 1128-1155
 
-Figure S11A:
-  data: plotData/averagedAndSummedDoublets
-  plotScript: heterogeneityCloseDistant.R, lines 205-221, 235-244
-
-Figure S11B:
+Figure S11:
   data: plotData/averagedAndSummedDoublets
   plotScript: heterogeneityCloseDistant.R, lines 205-221, 248-257
   
